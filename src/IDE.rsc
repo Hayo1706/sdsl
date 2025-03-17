@@ -6,6 +6,8 @@ import util::IDEServices;
 import IO;
 import ValueIO;
 import List;
+import salix::App;
+import App;
 
 import Syntax;
 import Message;
@@ -19,7 +21,9 @@ set[LanguageService] myLanguageContributor() = {
     executor(myCommands)
 };
 
-data Command = runSDSL(start[SDSL] sheet) | compileSDSL(start[SDSL] sheet);
+data Command 
+  = runSDSL(start[SDSL] sheet) 
+  | compileSDSL(start[SDSL] sheet);
 
 rel[loc,Command] myLenses(start[SDSL] sheet) = {
     <sheet@\loc, runSDSL(sheet, title="Run...")>,
@@ -27,7 +31,7 @@ rel[loc,Command] myLenses(start[SDSL] sheet) = {
 };
 
 void myCommands(runSDSL(start[SDSL] sheet)) {
-    println("Running SDSL");
+    showInteractiveContent(runWebSDSL(sheet));
 }
 
 void myCommands(compileSDSL(start[SDSL] sheet)) {

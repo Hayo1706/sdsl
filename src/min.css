@@ -10,7 +10,9 @@ body {
 .invalid-cell {
     background-color: #ffcccc !important;
 }
-
+.htCommentCell {
+    background-color: #e74d3ca4!important;
+  }
 .salix-alien {
     background-color: #0f0f10 !important;
 }
@@ -19,6 +21,11 @@ td {
     align-items: center;
   }
   
-  input[type="checkbox"] {
-    margin: 0;
+
+.htCommentTextArea {
+    pointer-events: none;
+    user-select: none;
+    background-color: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
   }

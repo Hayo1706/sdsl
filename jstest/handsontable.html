@@ -5,7 +5,7 @@
     <title>Handsontable Filtering</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.1.1/dist/handsontable.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
     <style>
         .invalid-cell {
             background-color: #ffcccc !important;
@@ -13,30 +13,16 @@
     </style>
 </head>
 <body>
-    <div id="example" class="ht-theme-main-dark" style="width: 100vw; height: 100vh;"></div>
+    <div id="example" class="ht-theme-main-dark"></div>
 
     <script>
-        const data2 = [{ name: "John", age: 30, isMarried: true },{ name: "Jane", age: 25, isMarried: false },];
-
         const hot = new Handsontable(document.getElementById('example'), {
-            columns: [{data: "hasdog", type: "checkbox"},{data: "ismarried", type: "checkbox"},{data: "name", type: "text"},{data: "amountchildren", type: "numeric"},{data: "age", type: "numeric"},],
-            colHeaders: ["hasdog","ismarried","name","amountchildren","age"],
-            licenseKey: 'non-commercial-and-evaluation',
-            minRows: 5,
-            minCols: 5,
-            themeName: 'ht-theme-main-dark-auto',
-            rowHeaders: true,
-            manualColumnResize: true,
-            manualRowResize: true,
-            // Explicitly define the contextMenu items for comments
-            contextMenu: [
-              'row_above',
-              'row_below',
-              'commentsAddEdit', // Add/Edit comment
-              'commentsRemove'   // Remove comment
-            ],
-            comments: true,   // Turn on the comments plugin
-            stretchH: 'all',
+            minCols: 7,
+            
+            colHeaders: ['1','2','3','4','5','6','7'],
+            contextMenu: true,
+            comments: {displayOnHover: true, readOnly: false},
+            licenseKey: 'non-commercial-and-evaluation'
         });
     </script>
 </body>

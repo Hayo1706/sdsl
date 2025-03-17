@@ -5,7 +5,7 @@ block Forms {
 
 block Question {
   name = column "Name": string;
-  question = column "Question": string;
+  question = column "Question": string integer;
   type = column "Type": string;
   value ?= column "Value": string;
   condition ?= column "Condition": bexpr;

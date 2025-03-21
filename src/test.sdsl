@@ -4,9 +4,12 @@ block Forms {
 }
 
 block Question {
-  name = column "Name": string;
-  question = column "Question": string;
-  type = column "Type": string;
-  value ?= column "Value": string;
-  condition ?= column "Condition": bexpr;
+  test = column "test": boolean;
+  name = column "Name": boolean;
+  question = column "Question": boolean;
+  type = column "Type": boolean;
+  value ?= column "Value": boolean;
+  condition ?= column "Condition": boolean;
+  test2 = column "test2": boolean;
+  test3 = column "test3": boolean;
 }

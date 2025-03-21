@@ -1,81 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>Table Resize (Rows & Columns)</title>
-  <style>
-    body {
-        overflow-x: auto; /* Enables horizontal scrolling if table overflows */
-        margin: 0;
-        padding: 0;
-    }
-    table {
-      border-collapse: collapse;
-      table-layout: fixed;
-      width: 6px;
-    }
-    th, td {
-      width: 100px;
-      border: 1px solid #ccc;
-      padding: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      min-width: 0 !important; /* Allows shrinking */
-      word-break: break-word;   /* Breaks long words */
-      text-overflow: ellipsis;
-    }
-
-    .resizing-line {
-        position: absolute;
-    background: red;
-    width: 2px;  /* Avoid 1px aliasing issues */
-    height: 2px;
-    z-index: 9999;
-    pointer-events: none;
-
-    left: 0;
-    top:0;
-    
-    /* Anti-aliasing tricks */
-    will-change: transform;
-    backface-visibility: hidden;
-    
-    /* Add a slight transition for smoothness */
-    transition: transform 50ms linear;
-    }
-  </style>
-</head>
-<body>
-<table id="myTable">
-  <thead>
-    <tr>
-      <th>Column A</th>
-      <th>Column B</th>
-      <th>Column C</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Row 1</th>
-      <td>Cell 1B</td>
-      <td>Cell 1C</td>
-    </tr>
-    <tr>
-      <th>Row 2</th>
-      <td>Cell 2B</td>
-      <td>Cell 2C</td>
-    </tr>
-    <tr>
-      <th>Row 3</th>
-      <td>Cell 3B</td>
-      <td>Cell 3C</td>
-    </tr>
-  </tbody>
-</table>
-
-<script>
+document.addEventListener("DOMContentLoaded", function() {
     const table   = document.getElementById('myTable');
-    const THRESH  = 6;  // px from border
+    const THRESH  = 10;  // px from border
     let mode = target = line = rect = null;
 
     //Move bar and show mouse icon
@@ -95,7 +20,7 @@
     // Begin dragging
     document.addEventListener('mousedown', e => {
         const info = getResizeInfo(e);
-        if (!info) return;
+        if (!info || !table) return;
         mode    = info.mode;
         target  = info.target;
         rect = info.rect;
@@ -150,8 +75,6 @@
     document.addEventListener('mouseup', e => {
         if (!mode || !target || !line) return;
         
-        console.log(parseFloat(line.style.top) - rect.bottom);
-
         var computedStyle = getComputedStyle(target);
         elementHeight = target.clientHeight;  // height with padding
         elementWidth = target.clientWidth;   // width with padding
@@ -167,6 +90,6 @@
         document.body.removeChild(line);
         mode = target = line = rect = th = null;
     });
-</script>
-</body>
-</html>
+
+    document.addEventListener("mousemove", (e) => e.preventDefault()); // Stops dragging behavior
+});

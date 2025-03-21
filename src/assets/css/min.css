@@ -1,0 +1,85 @@
+* {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 20px;      /* Keep it consistent */
+}
+body{
+  font-style: normal;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+}
+
+table {
+  width: 6px;
+  border-collapse: collapse;
+  color: #353535;
+  background-color: #ffffff;
+  table-layout: fixed;
+}
+
+th, td {
+  padding: 8px 8px;
+  position: relative;
+  border: 1px solid #e5e5e9;
+  overflow: hidden;
+  width: 100px;
+  min-width: 0 !important; /* Allows shrinking */
+  word-break: break-word;   /* Breaks long words */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.inputclass {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 2px solid #37bc6c;
+  box-sizing: border-box;     /* Ensures padding + border don’t expand width */
+  padding-top: 6.5px;
+  padding-left: 6.5px;
+  padding-bottom: 6.5px;
+  padding-right: 6px;
+}
+
+th {
+  background-color: #f7f7f9;
+  font-weight: 400;
+  color: #353535;
+}
+
+/* Selected Cell */
+td:focus, td.selected {
+  outline: 2px solid #37bc6c;
+  background-color: #37bc6c;
+  color: #ffffff;
+}
+
+.resizing-line {
+  position: absolute;
+  background: #37bc6c;
+  width: 2px; 
+  height: 2px;
+  z-index: 9999;
+  pointer-events: none;
+
+  left: 0;
+  top:0;
+
+  /* Anti-aliasing tricks */
+  will-change: transform;
+  backface-visibility: hidden;
+
+  /* Add a slight transition for smoothness */
+  transition: transform 50ms linear;
+}
+
+.selection {
+  background: #e3f6ea;
+  
+}

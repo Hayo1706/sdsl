@@ -6,6 +6,7 @@ import salix::HTML;
 import salix::App;
 import salix::Core;
 import salix::Index;
+import salix::Node;
 
 import util::Math;
 import List;
@@ -33,7 +34,8 @@ SalixApp[Model] sdslApp(start[SDSL] s, str id = "root")
 
 data Msg
   = sheetEdit(map[str,value] newValues)
-  | sheetSetMessage();
+  | sheetSetMessage()
+  | myClick(value v1, value v2);
 
 
 data SheetTable = sheetTable(
@@ -123,5 +125,5 @@ void view(Model m) {
     ColumnNamesToString(m.t.columns),
     event=onSheetChange(sheetEdit)
   );
-
+  div(attr("onclick","myFunction()"), "Click me!");
 }

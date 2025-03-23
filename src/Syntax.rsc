@@ -2,7 +2,7 @@ module Syntax
 
 extend lang::std::Layout;
 extend lang::std::Id;
-extend lang::rascal::\syntax::Rascal;
+//extend lang::rascal::\syntax::Rascal;
 
 start syntax SDSL = Block* questions; 
 

@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const table   = document.getElementById('myTable');
+    const body   = document.body;
+
     const THRESH  = 10;  // px from border
     let mode = target = line = rect = null;
 
@@ -7,8 +8,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.addEventListener('mousemove', e => {
         if (mode) {
             if (line){
-                if (mode === 'col') line.style.left = e.pageX + 'px';
-                else line.style.top  = e.pageY + 'px';
+                console.log(e);
+                if (mode === 'col') line.style.left = e.clientX + 'px';
+                else line.style.top  = e.clientY + 'px';
             }
             table.style.cursor = mode === 'col' ? 'col-resize' : 'row-resize';
         } else {
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
         rect = info.rect;
 
         e.preventDefault();
-        createLine(mode, mode === 'col' ? e.pageX : e.pageY);
+        createLine(mode, mode === 'col' ? e.clientX : e.clientY);
     });
 
     function createLine(m, pos) {
@@ -51,20 +53,22 @@ document.addEventListener("DOMContentLoaded", function() {
         const rect = th.getBoundingClientRect();
         // Are we near a THEAD column edge?
         if (th.parentNode.parentNode.tagName === 'THEAD'){
-            if(Math.abs(rect.right - e.pageX) < THRESH)
+            if(Math.abs(rect.right - e.clientX) < THRESH){
                 return { mode: 'col', target: th, rect: rect};
+            }
             var prevSibling = th.previousElementSibling;
-            if (Math.abs(rect.left - e.pageX) < THRESH && prevSibling)
+            if (Math.abs(rect.left - e.clientX) < THRESH && prevSibling){
                 return { mode: 'col', target: prevSibling , rect: prevSibling.getBoundingClientRect()};
+            }
         }
             
         // Or near a TBODY row edge (first column only)?
         if (th.parentNode.parentNode.tagName === 'TBODY') {
-            if(th.cellIndex === 0 && Math.abs(rect.bottom - e.pageY) < THRESH)
+            if(th.cellIndex === 0 && Math.abs(rect.bottom - e.clientY) < THRESH)
                 return { mode: 'row', target: th.parentNode, rect: rect };
                 var prevRow = th.parentElement.previousElementSibling;
                 var prevCell = prevRow?.children[th.cellIndex];
-            if (th.cellIndex === 0 && Math.abs(rect.top - e.pageY) < THRESH && prevCell){
+            if (th.cellIndex === 0 && Math.abs(rect.top - e.clientY) < THRESH && prevCell){
                 var prevCell = th.parentElement.previousElementSibling.children[th.cellIndex];
                 return { mode: 'row', target: prevRow, rect: prevCell.getBoundingClientRect() };
             }
@@ -89,6 +93,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         document.body.removeChild(line);
         mode = target = line = rect = th = null;
+        //resize the input if its set in the resized column
+        drawInput()
     });
 
     document.addEventListener("mousemove", (e) => e.preventDefault()); // Stops dragging behavior

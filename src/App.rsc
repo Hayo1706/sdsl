@@ -16,8 +16,10 @@ import Exception;
 
 import String;
 import ParseTree;
+import lang::json::IO;
 
-alias Model = tuple[start[SDSL] s, SheetTable t];
+alias RowModel = RowData;
+alias Model = SheetData;
 
 App[Model] runWebSDSL(start[SDSL] s) = webApp(sdslApp(s), |project://sdsl/src|);
 
@@ -26,53 +28,47 @@ App[Model] testrunWebSDSL() = webApp(sdslApp(parse(#start[SDSL], |project://sdsl
 
 SalixApp[Model] sdslApp(start[SDSL] s, str id = "root") 
   = makeApp(id,
-          Model() { return initModel(s,10,5);}, 
-          withIndex("SDSL", id, view, css=["assets/css/min.css"],scripts=["assets/javascript/table-resize.js","assets/javascript/testing.js"]), 
+          Model() { return initModel(s,100,50);}, 
+          withIndex("SDSL", id, view, css=["assets/css/min.css"],
+          scripts=["assets/javascript/table-resize.js","assets/javascript/selection.js","assets/javascript/viewport.js"]), 
           update
 );
 
 Model initModel(start[SDSL] s, int amountrows, int amountCols) {
-  list[list[value]] table = [];
+  list[RowData] table = [];
   for (int i <- [0..amountrows]){
     list[value] row = [];
     for(int i2 <- [0..amountCols]){
       row = row + "";
     }
-    table = table + [row];
+    table = table + rowData(i, "<i>", row);
   }
   list[HeaderData] columns = [];
   for (int i <- [0..amountCols]){
     columns = columns + headerData("Col<i>");
   }
-  list[HeaderData] rows = [];
-  for (int i <- [0..amountrows]){
-    rows = rows + headerData("Row<i>");
-  }
 
-  return <s, sheetTable(columns,rows,table,<-1,-1>,<-1,-1>,<-1,-1>, false)>;
+  return sheetData(columns,table, s, [0,0,amountrows,amountCols]);
 }
 
-data SheetTable = sheetTable(
+data SheetData = sheetData(
   list[HeaderData] cols,
-  list[HeaderData] rows,
-  list[list[value]] tableData,
-  tuple[int row, int col] activeCell,
-  tuple[int row, int col] dragpos1,
-  tuple[int row, int col] dragpos2,
-  bool dragging
+  list[RowData] tableData,
+  start[SDSL] s,
+  list[int] viewport
+);
 
+data RowData = rowData(
+  int rowIndex,
+  str rowHeader,
+  list[value] cellData 
 );
 
 data Msg
-  = cellClicked(int row, int col)
-  | changeValue(value content, int row, int col)
-  | deselect()
-  | startDrag(int row, int col)
-  | moveDrag(int row, int col)
-  | stopDrag(int row, int col)
-  | dragStartedHandle(str t);
-
-Msg(str) changeValue(int row, int col) = Msg(str s) { return changeValue(s, row, col); };
+  = testing(value v1, value v2)
+  | changedCellValue(value rowCol, value content)
+  | changedViewPort(value pos1, value pos2)
+  | bulkChange(map[str,value] difference);
 
 data HeaderData = headerData(
   str name
@@ -86,32 +82,24 @@ data HeaderData = headerData(
 
 Model update(Msg msg, Model m){
   switch(msg){
-    case cellClicked(int row, int col):{
-      m.t.activeCell = <row, col>;
+    case testing(value v1, value v2):{
+      println("1:<v1> 2:<v2>");
     }
-    case changeValue(value s, int row, int col):{
-      m.t.tableData[row][col] = s;
-      m.t.activeCell = <-1,-1>;
+    case changedCellValue(str idx, str content):{
+      list[int] rowCol = [ toInt(s) | s <- split(",",idx)];
+      m.tableData[rowCol[0]].cellData[rowCol[1]] = content;
     }
-    case deselect():{
-      m.t.activeCell = <-1,-1>;
-      m.t.dragpos1 = <-1,-1>;
-      m.t.dragpos2 = <-1,-1>;
-      m.t.dragging = false;
+    case changedViewPort(str pos1, str pos2):{
+      list[int] rowColPos1 = [ toInt(s) | s <- split(",",pos1)];
+      list[int] rowColPos2 = [ toInt(s) | s <- split(",",pos2)];
+      m.viewport = rowColPos1 + rowColPos2;
     }
-    case startDrag(int row, int col):{
-      m.t.activeCell = <-1, -1>;
-      m.t.dragpos2 = <-1,-1>;
-      m.t.dragpos1 = <row,col>;
-      m.t.dragging = true;
-    }
-    case moveDrag(int row, int col):{
-      if (m.t.dragging && m.t.dragpos1 != <row, col>){
-        m.t.dragpos2 = <row, col>;
+    case bulkChange(map[str,value] diff):{
+      visit (diff["payload"]) {
+        case "object"(col=int col, change=change, row=int row):{
+          m.tableData[row].cellData[col] = change;
+        }
       }
-    }
-    case stopDrag(int row, int col):{
-      m.t.dragging = false;
     }
   }
   return m;
@@ -119,74 +107,43 @@ Model update(Msg msg, Model m){
 
 
 void view(Model m) {
+  encode(testing);
+  encode(changedCellValue);
+  encode(changedViewPort);
+  encode(bulkChange);
+  input(id("editor"),\type("text"),\class("editor"));
   table(id("myTable"),() {
     thead(() {
       tr(() {
         th("");
-        for (HeaderData s <- m.t.cols){
+        for (HeaderData s <- m.cols){
           th(s.name);
         }
       });
     });
     tbody(() {
-      for (int i <- [0..size(m.t.rows)]){
-        tr(() {
-          th(m.t.rows[i].name);
-          for (int i2 <- [0..size(m.t.cols)]){
-            cellView(m,i,i2,m.t.tableData[i][i2]);
-          }
-        });
+      for (RowModel i <- m.tableData) {
+        rowView(i, m.viewport);
       }
     });
   });
 }
 
-void cellView(Model m, int row, int col, value content){
-  Attr inSelection = null();
-  Attr mouseMove = null();
-  if(isCellInSelection(row, col, m.t.dragpos1.row, m.t.dragpos1.col, m.t.dragpos2.row, m.t.dragpos2.col) && m.t.dragpos1 != <-1,-1> && m.t.dragpos2 != <-1,-1>){
-    inSelection= \class("selection"); 
-  }
-  if (m.t.dragging){
-    mouseMove= \onMouseEnter(moveDrag(row, col));
-  }
-
-  //edit mode
-  if (m.t.activeCell == <row,col>){
-    td(() {
-      input(
-        \value(content),
-        \type("text"),
-        \class("inputclass"),
-        \onChange(changeValue(row, col)),
-        \onBlur(deselect()),
-        inSelection,
-        \onMouseDown(startDrag(row, col)),
-        mouseMove,
-        \onMouseUp(stopDrag(row, col))
-      );
-    });
-  }
-  else{
-    //view mode
-    td(
-      \onClick(cellClicked(row, col)),
-      \onBlur(deselect()),
-      inSelection,
-      \onMouseDown(startDrag(row, col)),
-      mouseMove,
-      \onMouseUp(stopDrag(row, col)),
-      \draggable("false"),
-      content
-    );
-  }
+void rowView(RowModel m, list[int] viewport) {
+  tr(class("trheight"),attr("aria-rowindex","<m.rowIndex>"),() {
+    if (m.rowIndex >= viewport[0] && m.rowIndex <= viewport[2]){
+      th(m.rowHeader);
+      for (int  i <- [0..(min(size(m.cellData), viewport[3]))]){
+        cellView(i,m.cellData[i]);
+      }
+    }
+  });
 }
 
-bool isCellInSelection(int r, int c, int r1, int c1, int r2, int c2) {
-  int minR = min(r1, r2);
-  int maxR = max(r1, r2);
-  int minC = min(c1, c2);
-  int maxC = max(c1, c2);
-  
-  return (r >= minR && r <= maxR) && (c >= minC && c <= maxC);
+void cellView(int idx, value content){
+  td(
+    attr("aria-colindex","<idx>"),
+    tabindex(-1),
+    content
+  );
 }

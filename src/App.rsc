@@ -1,129 +1,111 @@
 module App
 
-import Charts;
+import Alien;
+import SpreadSheet;
 
 import salix::HTML;
 import salix::App;
 import salix::Core;
 import salix::Index;
-import salix::Node;
-
+import salix::util::Highlight;
 import util::Math;
 import List;
 import IO;
 import Syntax;
+import String;
 import Exception;
 
 import String;
 import ParseTree;
+import lang::rascal::\syntax::Rascal;
+import lang::rascal::format::Grammar;
+import Grammar;
+import lang::rascal::grammar::definition::Productions;
+import lang::rascal::grammar::definition::Layout;
+import lang::rascal::grammar::definition::Symbols;
 
-alias Model = tuple[start[SDSL] s, SheetTable t];
+alias Model = tuple[start[SDSL] s, SpreadSheet sheet, map[Symbol, Production] rules, map[int, str] colSyntax];
+SyntaxDefinition lay = (SyntaxDefinition)`layout WS = [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000]* !\>\> [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000];`;
 
-App[Model] runWebSDSL(start[SDSL] s) = webApp(sdslApp(s), |project://sdsl/src|);
+App[Model] runWebSDSL(start[SDSL] s) = webApp(sdslApp(s), |project://sdsl-1/src|);
 
-App[Model] testrunWebSDSL() = webApp(sdslApp(parse(#start[SDSL], |project://sdsl/src/test.sdsl|)), |project://sdsl/src|);
+App[Model] testrunWebSDSL() = webApp(sdslApp(parse(#start[SDSL], |project://sdsl-1/src/test.sdsl|)), |project://sdsl-1/src|);
 
 
 SalixApp[Model] sdslApp(start[SDSL] s, str id = "root") 
   = makeApp(id,
-          Model() { return <s, sheetTable(SDSLColumns(s), [])>;}, 
-          withIndex("SDSL", id, view, css=["/min.css"]), 
+          Model() { return initModel(s);}, 
+          withIndex("SDSL", id, view, css=["assets/css/min.css"],scripts=["/assets/javascript/customEditor.js"]), 
           update
 );
+SpreadSheet generate(SpreadsheetData \data) 
+  = spreadSheet(
+    sheetData=\data
+  );
 
-
-data Msg
-  = sheetEdit(map[str,value] newValues)
-  | sheetSetMessage()
-  | myClick(value v1, value v2);
-
-
-data SheetTable = sheetTable(
-  list[ColumnData] columns,
-  list[list[value]] tableData
-);
-
-data ColumnData = columnData(
-  str name,
-  str inputType,
-  Type* dataTypes
-);
-
-list[ColumnData] SDSLColumns(start[SDSL] s){
-  list[ColumnData] columns = [];
+Model initModel(start[SDSL] s){
+  list[str] columns = [];
+  map[int,str] symbols = ();
   visit(s){
-    case Column c: {
-      columns += columnData("<c.name>"[1..-1], "text", c.types);
+    case Column c:{
+      columns += "<c.name>"[1..-1];
+      symbols[size(columns) -1] = "<c.ref>";
     }
   }
-  return columns;
+  println(symbols);
+  Grammar gr = \layouts(syntax2grammar(lay + {syn | SyntaxDefinition syn <- s.top.grammarDefs}), \layouts("WS"), {});
+  return <s, generate(spreadSheetData(50, columns)), gr.rules, symbols>;
 }
-
-str ColumnNamesToString(list[ColumnData] a){
-  str columnconstant = "[";
-  for(ColumnData d <- a){
-    columnconstant += "\"" + d.name + "\",";
-  }
-  columnconstant += "]";
-  return replaceAll(columnconstant, "\"", "\'");
-}
-
-
-&T cast(type[&T] t, value x) {
-  if (&T e := x) 
-     return e;
-  throw "cast exception <x> can not be matched to <t>";
-} 
-
-map[str,value] checkChange(list[value] change, Model model){
-  str message = "";
-  if (change[3] != ""){
-    for (Type t <- model.t.columns[cast(#int ,change[1])].dataTypes){
-      if (t == [Type]"string"){
-        message = "";
-        break;
-      }
-      str reponse = checkType(change[3],t);
-      if (reponse == ""){
-        message = "";
-        break;
-      }
-      if (message != "")
-        message += " or ";
-      message += reponse;
-    }
-  }
-  if (message != "")
-   message = "This value should be " + message;
-  
-  return ("row":change[0],"column":change[1],"message":message);
-}
-
-str checkType(val,(Type)`boolean`) {try [Bool]"<val>"; catch ParseError(e): return "\'true\' or \'false\'"; return "";}
-str checkType(val,(Type)`integer`) {try [Int]"<val>"; catch ParseError(e): return "a number"; return "";}
-default str checkType(val, Type _) = "";
-
-
+data Msg
+  = sheetEdit(map[str,value] newValues);
 
 Model update(Msg msg, Model model){
   switch(msg){
-    case sheetEdit(map[str,value] sheet):{
-      list[value] change = cast(#list[value],sheet["payload"]);  
-
-      do(sheetSetMessage("mychart", sheetSetMessage(), ("comments":[checkChange(change,model)], "reset":false)));
+    case sheetEdit(map[str,value] diff):{
+      visit (diff["payload"]) {
+        case "object"(col=int col, change=change, row=int row):{
+          try{ 
+            if (change != "")
+              parse(type(sort(model.colSyntax[col]), model.rules),change);
+            model.sheet.sheetData.\data[row][col] = change;
+            model.sheet.comments = removeComment(model.sheet.comments, row, col);
+          }
+          catch ParseError(loc location):{
+            model.sheet.comments = replaceComment(model.sheet.comments, row, col, "<location>");
+            model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
+          }
+          
+        }
+      }
     }
   }
   return model;
-  
 }
+
 
 
 void view(Model m) {
   spreadsheet(
-    "mychart", 
-    size(m.t.columns),
-    ColumnNamesToString(m.t.columns),
-    event=onSheetChange(sheetEdit)
+    m.sheet,
+    "mychart",
+    onSheetChange(sheetEdit)
   );
-  div(attr("onclick","myFunction()"), "Click me!");
+}
+
+public str highlightErrorSubstring(str code, int \start, int end) {
+    str before = substring(code, 0, \start);
+    str error  = substring(code, \start, end);
+    str after  = substring(code, end);
+
+    str background = "";
+    if (trim(error) == "")
+      background = "style=\"background: red\"";
+
+    return "\<pre id=\"hltx\"\>" 
+          + before 
+          + "\<span <background> id=\"hltx\" class=\"errorText\"\>" 
+          + error 
+          + "\</span id=\"hltx\"\>" 
+          + after
+          + "\</pre id=\"hltx\"\>";
 }

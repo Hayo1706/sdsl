@@ -11,7 +11,7 @@ module salix::util::Highlight
 import salix::HTML;
 import ParseTree;
 import String;
-
+import IO;
 public map[str, lrel[str, str]] cat2styles = (
   "Type": [<"color", "#748B00">],
   "Identifier": [<"color", "#485A62">],
@@ -42,6 +42,7 @@ lrel[str,str] noMore(Tree _) = [];
 void highlightToHtml(Tree t, void(list[value]) container = pre, map[str,lrel[str,str]] cats = cat2styles, 
   int tabSize = 2, MoreCSS more = noMore) {
   container([() {
+    println("TEST");
     str pending = highlightRec(t, "", cats, tabSize, more);
     if (pending != "") {
       text(pending);
@@ -49,7 +50,7 @@ void highlightToHtml(Tree t, void(list[value]) container = pre, map[str,lrel[str
   }]);
 }
 
-private str highlightRec(Tree t, str current, map[str, lrel[str, str]] cats, int tabSize, MoreCSS more) {
+public str highlightRec(Tree t, str current, map[str, lrel[str, str]] cats, int tabSize, MoreCSS more) {
   
   void highlightArgs(list[Tree] args) {
     for (Tree a <- args) {

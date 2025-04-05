@@ -1,12 +1,33 @@
 block Forms {
-  name = column "Form": string;
+  name = column "Form": Str;
   questions* = block Question;
 }
 
 block Question {
-  name = column "Name": string;
-  question = column "Question": string;
-  type = column "Type": string;
-  value ?= column "Value": string;
-  condition ?= column "Condition": bexpr;
+  name =        column "Name": Name;
+  question =    column "Question": Str;
+  type =        column "Type": Types;
+  maxlength =   column "Max Length": Int;
+  value ?=      column "Value": Str;
+  condition ?=  column "Condition": Bool;
 }
+layout Whitespace = [\ \n\r]*;
+syntax Str = [\"]![\"]* [\"];
+
+syntax Bool = "true" | "false";
+syntax Types = "string" | "int" | "bool";
+syntax Int = [\-]?[0-9]+; 
+syntax Name = "Question" Int;
+
+syntax B = A"+"A;
+syntax A = "a";
+
+syntax Regex = "[\\" ![\n]+ "\\]";
+
+syntax Expr
+  = bracket "(" Expr ")"
+  > Int | Bool | Str 
+  > left ( Expr "+" Expr
+          | Expr "-" Expr 
+          )
+  ;

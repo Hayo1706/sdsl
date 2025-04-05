@@ -104,7 +104,7 @@ class Salix {
 				}
 			},
 
-			c: function (args) {
+			jsonPayload: function (args) {
 				return function (obj) { return {type: 'json', payload: obj}; };
 			},
 			

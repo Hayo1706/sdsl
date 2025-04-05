@@ -1,0 +1,15 @@
+block Forms {
+  name = column "Form": Str;
+  questions* = block Question;
+}
+
+block Question {
+  name =        column "Name": Str;
+  question =    column "Question": Str;
+  type =        column "Type": Str;
+  maxlength =   column "Max Length": Str;
+  value ?=      column "Value": Str;
+  condition ?=  column "Condition": Str;
+}
+
+syntax Str = [\"]![\"]* [\"];

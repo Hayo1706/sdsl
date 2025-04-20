@@ -1,4 +1,4 @@
-module SpreadSheet
+module SpreadSheets
 import IO;
 import List;
 

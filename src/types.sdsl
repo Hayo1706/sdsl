@@ -1,6 +1,0 @@
-block Question {
-  bool = column "bool": boolean;
-  int = column "int": integer;
-  string = column "string": string;
-  boolint = column "boolint": boolean integer;  
-}

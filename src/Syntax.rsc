@@ -10,10 +10,11 @@ start syntax SDSL = Block+ questions SyntaxDefinition+ grammarDefs;
 lexical Str = [\"]![\"]* [\"];
 
 syntax Block
-  = "block" Id name "{" Element* blocks "}";
+  = "block" Id name "{" Element* elems "}";
 
 syntax Element
-  = Id name [*]? ("="|"?=") (Column | SubBlock) ";";
+  = col: Id name [*]? ("="|"?=") Column column";"
+  | sub: Id name [*]? ("="|"?=") SubBlock subBlock ";";
 
 syntax Column = "column" Str name ":" Nonterminal ref;
 

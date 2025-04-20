@@ -13,7 +13,7 @@ import IO;
 import Set;
 import String;
 import List;
-import SpreadSheet;
+import SpreadSheets;
 
 private str HANDSONTABLE_SRC = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/dist/handsontable.full.js";
 private str HANDSONTABLE_CSS = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/handsontable.min.css";
@@ -66,7 +66,7 @@ str initcode(str name, int length, str colheaders) = "
     '      changedValues.push({
     '        row: element[0],
     '        col: element[1],
-    '        change: element[3]
+    '        change: element[3].replace(/\<\\/?[^\>]*\\bid=\\x22hltx\\x22[^\>]*\>/g, \'\')
     '      });
     '        
     '    });

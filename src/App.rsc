@@ -1,7 +1,7 @@
 module App
 
 import Alien;
-import SpreadSheet;
+import SpreadSheets;
 
 import salix::HTML;
 import salix::App;
@@ -23,7 +23,8 @@ import Grammar;
 import lang::rascal::grammar::definition::Productions;
 import lang::rascal::grammar::definition::Layout;
 import lang::rascal::grammar::definition::Symbols;
-
+import Parser;
+import Node;
 alias Model = tuple[start[SDSL] s, SpreadSheet sheet, map[Symbol, Production] rules, map[int, str] colSyntax];
 SyntaxDefinition lay = (SyntaxDefinition)`layout WS = [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000]* !\>\> [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000];`;
 
@@ -52,12 +53,13 @@ Model initModel(start[SDSL] s){
       symbols[size(columns) -1] = "<c.ref>";
     }
   }
-  println(symbols);
+
   Grammar gr = \layouts(syntax2grammar(lay + {syn | SyntaxDefinition syn <- s.top.grammarDefs}), \layouts("WS"), {});
   return <s, generate(spreadSheetData(50, columns)), gr.rules, symbols>;
 }
 data Msg
-  = sheetEdit(map[str,value] newValues);
+  = sheetEdit(map[str,value] newValues)
+  | parseSheet();
 
 Model update(Msg msg, Model model){
   switch(msg){
@@ -78,19 +80,24 @@ Model update(Msg msg, Model model){
         }
       }
     }
+    case parseSheet():{
+      tree = parseSheet(model.sheet.sheetData.\data, model.s);
+      println(prettyPrintIndented(tree));
+      println(tree);
+    }
   }
   return model;
 }
 
-
-
 void view(Model m) {
+  button(\onClick(parseSheet()),"PARSE");
   spreadsheet(
     m.sheet,
     "mychart",
     onSheetChange(sheetEdit)
   );
 }
+
 
 public str highlightErrorSubstring(str code, int \start, int end) {
     str before = substring(code, 0, \start);

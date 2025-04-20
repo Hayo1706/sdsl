@@ -8,8 +8,8 @@ block Question {
   question =    column "Question": Str;
   type =        column "Type": Types;
   maxlength =   column "Max Length": Int;
-  value ?=      column "Value": Str;
-  condition ?=  column "Condition": Bool;
+  value ?=      column "Value": Expr;
+  condition ?=  column "Condition": Expr;
 }
 layout Whitespace = [\ \n\r]*;
 syntax Str = [\"]![\"]* [\"];
@@ -18,11 +18,6 @@ syntax Bool = "true" | "false";
 syntax Types = "string" | "int" | "bool";
 syntax Int = [\-]?[0-9]+; 
 syntax Name = "Question" Int;
-
-syntax B = A"+"A;
-syntax A = "a";
-
-syntax Regex = "[\\" ![\n]+ "\\]";
 
 syntax Expr
   = bracket "(" Expr ")"

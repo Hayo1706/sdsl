@@ -80,16 +80,6 @@ str initcode(str name, int length, str colheaders) = "
     '
     'window.hotInstance = hot;
     '
-    '
-    'function resetComments(){
-    '  console.log(\'Setting comments\');
-    '  for (let row = 0; row \< <name>_lastrow + 1; row++) {
-    '    for (let col = 0; col \< hot.countCols(); col++) {
-    '      const cellMeta = hot.getCellMeta(row, col);
-    '      delete cellMeta.comment;
-    '    }
-    '  }
-    '}
     '$salix.registerAlien(\'<name>\', <name>_patch);
     '
     ";

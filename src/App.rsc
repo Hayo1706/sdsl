@@ -2,20 +2,21 @@ module App
 
 import Alien;
 import SpreadSheets;
-
+import ParserSDSL;
+import vis::Text;
 import salix::HTML;
 import salix::App;
 import salix::Core;
 import salix::Index;
-import salix::util::Highlight;
 import util::Math;
 import List;
+import Map;
 import IO;
 import Syntax;
 import String;
 import Exception;
+import util::Maybe;
 
-import String;
 import ParseTree;
 import lang::rascal::\syntax::Rascal;
 import lang::rascal::format::Grammar;
@@ -23,14 +24,14 @@ import Grammar;
 import lang::rascal::grammar::definition::Productions;
 import lang::rascal::grammar::definition::Layout;
 import lang::rascal::grammar::definition::Symbols;
-import Parser;
 import Node;
-alias Model = tuple[start[SDSL] s, SpreadSheet sheet, map[Symbol, Production] rules, map[int, str] colSyntax];
+
+alias Model = tuple[start[SDSL] s, SpreadSheet sheet, map[Symbol, Production] rules, map[int, str] colSyntax, list[list[value]] parsedData];
 SyntaxDefinition lay = (SyntaxDefinition)`layout WS = [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000]* !\>\> [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000];`;
 
-App[Model] runWebSDSL(start[SDSL] s) = webApp(sdslApp(s), |project://sdsl-1/src|);
+App[Model] runWebSDSL(start[SDSL] s) = webApp(sdslApp(s), |project://sdsl/src|);
 
-App[Model] testrunWebSDSL() = webApp(sdslApp(parse(#start[SDSL], |project://sdsl-1/src/test.sdsl|)), |project://sdsl-1/src|);
+App[Model] testrunWebSDSL() = webApp(sdslApp(parse(#start[SDSL], |project://sdsl/src/test.sdsl|)), |project://sdsl/src|);
 
 
 SalixApp[Model] sdslApp(start[SDSL] s, str id = "root") 
@@ -44,7 +45,7 @@ SpreadSheet generate(SpreadsheetData \data)
     sheetData=\data
   );
 
-Model initModel(start[SDSL] s){
+Model initModel(start[SDSL] s, int rows = 50) {
   list[str] columns = [];
   map[int,str] symbols = ();
   visit(s){
@@ -55,7 +56,7 @@ Model initModel(start[SDSL] s){
   }
 
   Grammar gr = \layouts(syntax2grammar(lay + {syn | SyntaxDefinition syn <- s.top.grammarDefs}), \layouts("WS"), {});
-  return <s, generate(spreadSheetData(50, columns)), gr.rules, symbols>;
+  return <s, generate(spreadSheetData(rows, columns)), gr.rules, symbols, [["" | int _ <- [0..size(columns)]] | int i <-[0..rows]]>;
 }
 data Msg
   = sheetEdit(map[str,value] newValues)
@@ -67,8 +68,8 @@ Model update(Msg msg, Model model){
       visit (diff["payload"]) {
         case "object"(col=int col, change=change, row=int row):{
           try{ 
-            if (change != "")
-              parse(type(sort(model.colSyntax[col]), model.rules),change);
+            if (change != ""){model.parsedData[row][col] = parse(type(sort(model.colSyntax[col]), model.rules),change);}
+            else{ model.parsedData[row][col] = "";}
             model.sheet.sheetData.\data[row][col] = change;
             model.sheet.comments = removeComment(model.sheet.comments, row, col);
           }
@@ -80,10 +81,26 @@ Model update(Msg msg, Model model){
         }
       }
     }
-    case parseSheet():{
-      tree = parseSheet(model.sheet.sheetData.\data, model.s);
-      println(prettyPrintIndented(tree));
+    case parseSheet:{
+      tree = parseData(model.parsedData, model.s);
       println(tree);
+      println("\nConverting node to adt...\n");
+      abc = node2data(tree, #Forms, model.s);
+      //println(abc);
+      //Check if pattern matching works
+      visit(abc){
+        case question(q,_,_,nothing(),_,e):{
+          println("Question: <q> has a value of nothing");
+          println(e);
+          if ((Expr)`<Expr e1>|| <Expr e2>`:= e){
+            println("Question: <q> has a condition of <e1> or <e2>");
+          }
+        }
+        case e:(Expr)`<Expr e1>|| <Expr e2>`:{
+          println("AAAAAAAAAAAA<e>");
+        }
+
+      }
     }
   }
   return model;

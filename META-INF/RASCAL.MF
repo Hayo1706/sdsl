@@ -1,3 +1,3 @@
-Project-Name: sdsl-1
+Project-Name: sdsl
 Source: /src
 Require-Libraries: |lib://rascal-lsp|, |lib://salix-core|

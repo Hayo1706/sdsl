@@ -2,13 +2,28 @@ module Stop
 
 import ParseTree;
 import IO;  
-import Node;
 import Type;
-data Forms     = forms(str name, list[Question] questions);
-data Question  = question(str question, str maxlength, str name, str \value, str \type, str condition);
-    
+import Map;
+import Syntax;
+
+
 void main() {
-    // node qlNode = 
-    //     "Forms"(name="\"A\"",questions=["Question"(question="\"Whats the weather?\"",maxlength="100",name="Question 1",\value="",\type="string",condition="true"),"Question"(question="\"Whats the weather?\"",maxlength="100",name="Question 2",\value="",\type="string",condition="true")]);
-    println(getName(#Forms));
+    start[SDSL] testing = parse(#start[SDSL], |project://sdsl/src/test.sdsl|);
+    //find all optional instances and print their block and name
+    map[str, list[str]] optionalInstances = ();
+    for (Block b <- testing.questions){
+        list[str] optional = [];
+        for (Element e <- b.elems){
+            if (/\*?\?=/ := "<e>"){
+                optional += "<e.name>";
+            }
+            
+        }
+        optionalInstances["<b.name>"] = optional;
+    }
+    println(optionalInstances);
+
 }
+
+
+

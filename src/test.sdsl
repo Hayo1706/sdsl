@@ -4,25 +4,24 @@ block Forms {
 }
 
 block Question {
-  name =        column "Name": Name;
+  name =        column "Name": QName;
   question =    column "Question": Str;
   type =        column "Type": Types;
   maxlength =   column "Max Length": Int;
   value ?=      column "Value": Expr;
-  condition ?=  column "Condition": Expr;
+  condition =  column "Condition": Expr;
 }
-layout Whitespace = [\ \n\r]*;
 syntax Str = [\"]![\"]* [\"];
 
 syntax Bool = "true" | "false";
 syntax Types = "string" | "int" | "bool";
 syntax Int = [\-]?[0-9]+; 
-syntax Name = "Question" Int;
+syntax QName = "Question" Int;
 
 syntax Expr
   = bracket "(" Expr ")"
-  > Int | Bool | Str 
-  > left ( Expr "+" Expr
-          | Expr "-" Expr 
+  > Bool 
+  > left ( Expr "&&" Expr
+          | Expr "||" Expr 
           )
   ;

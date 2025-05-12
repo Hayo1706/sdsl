@@ -49,7 +49,7 @@ alias SalixApp[&T] = tuple[str id, SalixResponse (SalixRequest) rr];
 and optionally a list of subscriptions, and a possibly extended parser for
 handling messages originating from wrapped "native" elements.}
 SalixApp[&T] makeApp(str appId, &T() init, void(&T) view, &T(Msg, &T) update, 
-  Subs[&T] subs = list[Sub](&T _) {return [];}, ParserSDSL parser = parseMsg, bool debug = false) {
+  Subs[&T] subs = list[Sub](&T _) {return [];}, Parser parser = parseMsg, bool debug = false) {
    
   Node currentView = hnode(empty());
   

@@ -1,4 +1,4 @@
-module SpreadSheets
+module sheetdsl::SpreadSheets
 import IO;
 import List;
 
@@ -31,14 +31,19 @@ data SpreadsheetData
     );
 
 
-CommentData commentData(int row, int col, str text)
-  = commentData(row, col, comment(text));
+data ErrorType 
+ = error()
+ | warning()
+ | parseerror();
 
-CommentData commentData(int row, int col, int text)
-  = commentData(row, col, comment(text));
+CommentData commentData(int row, int col, str text, ErrorType class)
+  = commentData(row, col, comment(text), class);
 
-public list[CommentData] replaceComment(list[CommentData] cs, int row, int col, value newText) 
-    = removeComment(cs, row, col) + commentData(row, col, newText);
+CommentData commentData(int row, int col, int text, ErrorType class)
+  = commentData(row, col, comment(text), class);
+
+public list[CommentData] replaceComment(list[CommentData] cs, int row, int col, value newText, ErrorType className) 
+    = removeComment(cs, row, col) + commentData(row, col, newText, className);
 
 
 public list[CommentData] removeComment(list[CommentData] cs, int row, int col){
@@ -49,13 +54,13 @@ public list[CommentData] removeComment(list[CommentData] cs, int row, int col){
     }
     return cs;
 }
-    // = visit(cs){case [*prefix,commentData(row,col,_),*postfix] => [*prefix,*postfix]} + commentData(row,col,newText);
 
 data CommentData 
     = commentData(
         int row,
         int col,
-        Comment comment
+        Comment comment,
+        ErrorType className
     );
 
 data Comment

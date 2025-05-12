@@ -7,9 +7,9 @@ import IO;
 import ValueIO;
 import List;
 import salix::App;
-import App;
+import sheetdsl::ui::SheetApp;
 
-import Syntax;
+import sheetdsl::Syntax;
 import Message;
 import ParseTree;
 

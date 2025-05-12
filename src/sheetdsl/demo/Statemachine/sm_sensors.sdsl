@@ -1,0 +1,14 @@
+top block Sensors {
+    id = column "Id": Id;
+    description = column "Description": Str;
+    type = column "Type": Types;
+    kind = column "Analog or Digital": Kind;
+}
+
+syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
+syntax Types
+  = boolean: "boolean"
+  | integer: "integer"
+  | float: "float";
+syntax Str = [\"]![\"]* [\"];
+syntax Kind = "analog" | "digital";

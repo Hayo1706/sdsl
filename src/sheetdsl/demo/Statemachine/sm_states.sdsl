@@ -1,0 +1,41 @@
+top block State {
+    stepnum = column "Step number": Int;
+    description = column "Description": Str;
+    transitions* ?= block Transition;
+}
+
+block Transition {
+    to= column "To step number": Int;
+    description = column "Description": Str;
+    condition = column "Condition": Expr;
+
+}
+
+syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
+syntax Int = [0-9]+;
+syntax Bool = "true" | "false";
+
+syntax Severity = "info" | "warn" | "alarm";
+syntax Str = [\"]![\"]* [\"];
+syntax Expr
+  = bracket "(" Expr ")"
+  | "!" Expr
+  > Int | Bool | Str 
+  > var: Id name \ "true" \"false" \ "required" \ "range" \ "regex" \ "form" \ "if" \ "else"      
+  > right Expr "^" Expr
+  > left ( Expr "*" Expr  
+          | Expr "/" Expr
+          )
+  > left ( Expr "+" Expr
+          | Expr "-" Expr 
+          )
+  > left ( Expr "\>" Expr
+          | Expr "\<" Expr
+          | Expr "\<=" Expr
+          | Expr "\>=" Expr
+          | Expr "==" Expr
+          | Expr "!=" Expr
+          )
+  > left Expr "&&" Expr
+  > left Expr "||" Expr
+  ;

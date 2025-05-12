@@ -1,0 +1,12 @@
+top block Sensors {
+    stepnum = column "Step number": Int;
+    description = column "Description": Str;
+    motor1 ?= column "Motor1": Check;
+    motor2 ?= column "Motor2": Check;
+    heater1 ?= column "Heater1": Check;
+    valve1 ?= column "Valve1": Check;
+}
+syntax Int = [0-9]+;
+syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
+syntax Str = [\"]![\"]* [\"];
+syntax Check = "x" | "X";

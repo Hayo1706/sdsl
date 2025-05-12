@@ -1,0 +1,45 @@
+top block Forms {
+  name = column "Form": Str;
+  questions* = block Question;
+}
+
+block Question {
+  name =        column "Name": Id;
+  question =    column "Question": Str;
+  types =        column "Type": Types;
+  value ?=      column "Value": Expr;
+  condition ?=  column "Condition": Expr;
+}
+
+syntax Id = [a-z A-Z 0-9 _] !<< [a-z A-Z][a-z A-Z 0-9 _]* !>> [a-z A-Z 0-9 _];
+syntax Str = [\"]![\"]* [\"];
+
+syntax Types
+  = boolean: "boolean"
+  | integer: "integer"
+  | string: "string";
+
+syntax Bool = "true" | "false";
+syntax Int = [\-]?[0-9]+; 
+syntax Expr
+  = bracket "(" Expr ")"
+  | "!" Expr
+  > Int | Bool | Str 
+  > var: Id name \ "true" \"false" \ "required" \ "range" \ "regex" \ "form" \ "if" \ "else"      
+  > right Expr "^" Expr
+  > left ( Expr "*" Expr  
+          | Expr "/" Expr
+          )
+  > left ( Expr "+" Expr
+          | Expr "-" Expr 
+          )
+  > left ( Expr "\>" Expr
+          | Expr "\<" Expr
+          | Expr "\<=" Expr
+          | Expr "\>=" Expr
+          | Expr "==" Expr
+          | Expr "!=" Expr
+          )
+  > left Expr "&&" Expr
+  > left Expr "||" Expr
+  ;

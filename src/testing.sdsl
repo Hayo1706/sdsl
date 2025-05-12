@@ -1,0 +1,15 @@
+top block B1 {
+  name = column "Form": Str;
+}
+
+block B2 {
+  name =        column "Name": Str;
+  name2 =        column "Name": Str;
+}
+
+block B3 {
+  name =        column "Name": Str;
+  name2 =        column "Name": Str;
+}
+
+lexical Str = [\"]![\"]* [\"];

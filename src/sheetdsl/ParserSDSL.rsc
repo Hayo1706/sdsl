@@ -83,7 +83,7 @@ private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int star
                 colIdx += 1;
             }
             else if(column is sub){
-                if (column has multiple)
+                if ("<column.multiple>" == "*")
                     nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
 
                 tuple[set[Message], bool] newMessages = checkRequiredBlock(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
@@ -112,27 +112,17 @@ list[node] parseData(Matrix m, start[SDSL] s){
     return scanBlock(filtered, s.top.topBlock.b, amountRows, getBlocks(s));
 }
 
-// This makes some ssumptions: first rows are not empty. No empty rows between data. Only one type of top block.
 list[node] scanBlock(Matrix m, Block b, int amountRows, map[str, Block] blocks, int startRowIdx = 0, int startColIdx = 0){
     list[node] instances = [];
     int row = startRowIdx;
     // Only scans the rows that belong to this block
     while(row < amountRows){
         //Check if the whole row is empty or not, if so, return
-        bool empty = true;
-        for (int idx <- [startColIdx..size(m[row])]){
-            if (m[row][idx] != ""){ 
-                empty = false;
-                break;
-            }
-        }
-        if (empty)
-            return instances;
         int colIdx = 0;
         map[str, value] vals = ();
         //Go over all columns
         for(Element column <- b.elems){
-            //Check if the column is a value type, or another subblock
+            //Check if column, or another subblock
             if (column is col)
                 vals["<column.name>"] = m[row][startColIdx + colIdx];
             else if (column is sub){

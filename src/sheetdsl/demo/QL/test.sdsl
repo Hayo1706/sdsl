@@ -1,6 +1,6 @@
 top block Forms {
   name = column "Form": Str;
-  questions* = block Question;
+  questions = block Question;
 }
 
 block Question {

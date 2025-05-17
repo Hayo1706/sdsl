@@ -1,5 +1,7 @@
 top block B1 {
   name = column "Form": Str;
+  b2 = block B2;
+  b3* = block B3;
 }
 
 block B2 {

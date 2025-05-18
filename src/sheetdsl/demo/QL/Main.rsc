@@ -7,6 +7,7 @@ import sheetdsl::demo::QL::Check;
 import sheetdsl::ParserSDSL;
 import sheetdsl::ui::SheetWithToolbar;
 import sheetdsl::Syntax;
+import sheetdsl::util::Node2adt;
 
 import util::Maybe;
 import ParseTree;
@@ -32,13 +33,12 @@ set[Message] parse2(list[node] nodes) {
     if (size(nodes) == 0) {
         return {};
     }
-    return check(node2data(nodes[0], #Forms, parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/test.sdsl|)));
+    return check(node2adt(nodes[0], #Forms));
 }
 
 void run2(list[node] nodes) {
     println("\nConverting node to adt...\n");
-    if (Forms abc := node2data(nodes[0], #Forms, parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/test.sdsl|))){
-        println(abc);
-        showInteractiveContent(runQL(abc));
+    if (Forms f := node2adt(nodes[0], #Forms)){
+        showInteractiveContent(runQL(f));
     }
 }

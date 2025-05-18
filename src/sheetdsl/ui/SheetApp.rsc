@@ -30,7 +30,7 @@ import lang::rascal::grammar::definition::Productions;
 import lang::rascal::grammar::definition::Layout;
 import lang::rascal::grammar::definition::Symbols;
 
-alias ParsedData = tuple[list[list[value]] raw, list[list[value]] parsed];
+alias ParsedData = tuple[Matrix raw, Matrix parsed];
 alias ParseFunc = set[Message](list[node]);
 alias RunFunc   = void(list[node]);
 
@@ -108,7 +108,6 @@ Model update(sheetEdit(map[str,value] diff), Model model){
         model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError( <location> )", parseerror());
         model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
       }
-      
     }
   }
   return model;
@@ -117,10 +116,9 @@ Model update(sheetEdit(map[str,value] diff), Model model){
 Model update(parseSheet(), Model model){
   set[Message] errs = checkRequiredBlocks(model.parsedData.raw, model.s);
   bool missingCells = size(errs) > 0;
-
   if (!missingCells)
-    errs = model.parseFunc(parseData(model.parsedData.parsed, model.s));
-
+    errs = model.parseFunc(parseMatrix(model.parsedData.parsed, model.s));
+  
   list[CommentData] tempComments = [];
   for (Message err <- errs){
     ans = messageToCommentData(err, missingCells);
@@ -134,7 +132,7 @@ Model update(parseSheet(), Model model){
 
 
 Model update(runSheet(), Model model){
-  model.runFunc(parseData(model.parsedData.parsed, model.s));
+  model.runFunc(parseMatrix(model.parsedData.parsed, model.s));
   return model;
 }
 

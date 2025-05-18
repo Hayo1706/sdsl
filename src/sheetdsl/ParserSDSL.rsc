@@ -17,7 +17,7 @@ import Type;
 
 alias Matrix = list[list[value]];
 
-int length(l) = (0| it + 1 | item <- l);
+int length(l) = (0| it + 1 | _ <- l);
 
 loc CoordsToLoc(int row, int col){
     str coords = "<row>" + "," + "<col>";
@@ -41,9 +41,7 @@ map[str, Block] getBlocks(start[SDSL] s){
         }
     }
     return blocks;
-
 }
-
 
 private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
     for(int r <- [rowStart+1..size(m)]){
@@ -58,13 +56,8 @@ private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
     return size(m);
 }
 
-Matrix removeEmptyRows(Matrix m) = [l | list[value] l <- m, !isEmptyRow(l)];
 
-public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) {
-    Matrix filtered = removeEmptyRows(m);
-    return checkRequiredBlock(m, s.top.topBlock.b, 0, size(m), 0, getBlocks(s))[0];
-} 
-
+public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) = checkRequiredBlock(m, s.top.topBlock.b, 0, size(m), 0, getBlocks(s))[0];
 private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
     set[Message] messages = {};
     bool empty = true;
@@ -103,154 +96,41 @@ private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int star
     return <messages, empty>;
 }
 
+Matrix removeEmptyRows(Matrix m) = [l | list[value] l <- m, !isEmptyRow(l)];
 
+public list[node] parseMatrix(Matrix m, start[SDSL] s) {
+    filtered = removeEmptyRows(m);
+    return parseM(filtered, s.top.topBlock.b, 0, size(filtered), 0, getBlocks(s));
+} 
 
-
-list[node] parseData(Matrix m, start[SDSL] s){
-    Matrix filtered = removeEmptyRows(m);
-    int amountRows = size(filtered);
-    return scanBlock(filtered, s.top.topBlock.b, amountRows, getBlocks(s));
-}
-
-list[node] scanBlock(Matrix m, Block b, int amountRows, map[str, Block] blocks, int startRowIdx = 0, int startColIdx = 0){
+private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
     list[node] instances = [];
-    int row = startRowIdx;
-    // Only scans the rows that belong to this block
-    while(row < amountRows){
-        //Check if the whole row is empty or not, if so, return
-        int colIdx = 0;
+    int row = startRow;
+    while (row < endRow){
+        int colIdx = colStart;
+        int nextRow = row + 1;
         map[str, value] vals = ();
-        //Go over all columns
-        for(Element column <- b.elems){
-            //Check if column, or another subblock
-            if (column is col)
-                vals["<column.name>"] = m[row][startColIdx + colIdx];
-            else if (column is sub){
-                int nextBlock = calculateNextInstanceBlock(m,b,row,startColIdx);
-                vals["<column.name>"] = scanBlock(
-                    m,blocks["<column.subBlock.name>"],nextBlock,blocks, startRowIdx=row,startColIdx=startColIdx + colIdx
-                );
-                row = (nextBlock - 1); // Skip the rows of the subblock
+
+        for (Element column <- b.elems){
+            if(column is col){
+                if (column.assign is required){
+                    vals["<column.name>"] = m[row][colIdx];
+                }
+                else { // Wrap in Maybe if optional
+                    if (m[row][colIdx] != "") vals["<column.name>"] = just(m[row][colIdx]);
+                    else vals["<column.name>"] = nothing();
+                }
+                colIdx += 1;
             }
-            colIdx += 1;
+            else if(column is sub){
+                if ("<column.multiple>" == "*")
+                    nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
+                vals["<column.name>"] = parseM(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
+                colIdx += length(blocks["<column.subBlock.name>"].elems);
+            }
         }
-        row += 1;
+        row = nextRow;
         instances += makeNode("<b.name>",keywordParameters=vals);
     }
     return instances;
-}
-
-
-
-int calculateNextInstanceBlock(Matrix m, Block b, int row, int col){
-    for(int idx <- [row+1..size(m)]){
-        if (reqColsFilled(m,b,idx,col)){
-            return idx;
-        }
-    }
-    return size(m);
-}
-
-map[str,list[str]] getOptionalInstances(start[SDSL] s){
-    map[str, list[str]] optionalInstances = ();
-    map[str, Block] blocks = getBlocks(s);
-    for (key <- blocks){
-        list[str] optional = [];
-        for (Element e <- blocks[key].elems){
-            if (e.assign is optional){
-                optional += "<e.name>";
-            }
-        }
-        optionalInstances[key] = optional;
-    }
-    return optionalInstances;
-}
-
-bool reqColsFilled(Matrix m, Block b,int row,int colIdx){
-    bool empty = true;
-    for(Element column <- b.elems){
-        //Pattern match to only columnms that are not optional
-        if (column is col && !(/\*?\?=/ := "<column>")){
-            if (m[row][colIdx] == ""){
-                if (!empty){
-                    throw "Block cannot be partially filled in";
-                }
-            }
-            else {
-                empty = false;
-            }
-        }
-    }
-    return !empty;
-}
-
-
-public value node2data(list[node] n, type[&T] t, start[SDSL] s) = [node2data(n1, t, s) | node n1 <- n];
-
-public value node2data(node n, type[&T] t, start[SDSL] s) = node2data(n, t, getOptionalInstances(s));
-
-//Convert a node to a data type with the same names, types and values
-public value node2data(node n, type[&T] t, map[str,list[str]] optional) {
-    //Get all the constructors for the type
-    choice(_,alts) = t.definitions[adt(getName(n),[])];
-    //Loop over all the constructors
-    for (c:cons(label(consName, _), args, _, _) <- alts){
-        //Check if the constructor has the same amount of arguments as the node
-        if (size(args) != size(getKeywordParameters(n))){
-            continue;
-        }
-        //Check if the constructor has the same names as the node
-        for (label(lblName, ltype) <- args){
-            if (!getKeywordParameters(n)[lblName]?){
-                continue;
-            }
-        }
-        //Construct the arguments for the constructor
-        list[value] vals = [];
-        for (label(name, lblType) <- args){
-            //If empty, continue
-            if (getKeywordParameters(n)[name] == ""){
-                vals += nothing();
-                continue;
-            }
-            //Check if column is optional
-            if (name in optional[getName(n)]){
-                //Check if column is a subblock
-                if (\list(adt(adtName,[])):= lblType && list[node] children := getKeywordParameters(n)[name]){
-                    vals += just([[node2data(n1, type(adt(adtName,[]),t.definitions),optional) | node n1 <- children]]);
-                }
-                //Check which type is filled in with
-                else if (appl(prod(label(_,a), _, _), _) := getKeywordParameters(n)[name] || appl(prod(a, _, _), _) := getKeywordParameters(n)[name]){
-                    if (adt("Maybe", [a]) := lblType){
-                        vals += just(getKeywordParameters(n)[name]);
-                    }
-                    else{
-                        throw "Type mismatch for node <getName(n)>,<name> expected <adt("Maybe", [a])> but got <lblType>"; 
-                    }
-                }
-            }
-            // if column is not optional
-            else {
-                testing = getKeywordParameters(n)[name];
-                //Check if column is a subblock
-                if (\list(adt(adtName,[])):= lblType && list[node] children := getKeywordParameters(n)[name]){
-                    vals += [[node2data(n1, type(adt(adtName,[]),t.definitions),optional) | node n1 <- children]];
-                }
-                //Check which type is filled in with
-                
-                else if (appl(prod(label(_,a), _, _), _) := getKeywordParameters(n)[name] || appl(prod(a, _, _), _) := getKeywordParameters(n)[name]){
-                    if (a := lblType){
-                        vals += getKeywordParameters(n)[name];
-                    }
-                    else{
-                        throw "Type mismatch for node <getName(n)>,<name> expected <a> but got <lblType>"; 
-                    }
-                }
-            }
-        }
-        //Make the instance
-        t = type(adt(getName(n),[]),t.definitions);
-        return make(t, consName, vals);
-    }
-    throw "No constructor found for node <n>";
 }

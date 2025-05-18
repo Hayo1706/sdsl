@@ -42,6 +42,14 @@ void main() {
     make(#Tesing, "hallo", [], vals);
     println(getChildren(instances));
 
+    Maybe[bool] tes = nothing();
+    Maybe[bool] tes1 = just(true);
+
+    t1 = typeOf(tes);
+    t2 = typeOf(tes1);
+    println(t1);
+    println(t2.name);
+
 }
 
 void testFunc(list[Tesing2] t){

@@ -1,5 +1,5 @@
-top block Sensors {
-    id = column "Id": Id;
+top block Sensor {
+    id = column "Sensor Id": Id;
     description = column "Description": Str;
     type = column "Type": Types;
     kind = column "Analog or Digital": Kind;

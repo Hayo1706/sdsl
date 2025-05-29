@@ -1,12 +1,16 @@
 module sheetdsl::demo::Statemachine::TripleGrid
 
-import sheetdsl::ui::Toolbar;
-import sheetdsl::ui::SheetApp;
-
 import sheetdsl::SpreadSheets;
 import sheetdsl::ParserSDSL;
-import sheetdsl::util::Error;
 import sheetdsl::Syntax;
+
+import sheetdsl::ui::Toolbar;
+import sheetdsl::ui::SheetApp;
+import sheetdsl::util::Error;
+import sheetdsl::util::SyntaxReader;
+import sheetdsl::util::Node2adt;
+import sheetdsl::demo::Statemachine::Check;
+import sheetdsl::demo::Statemachine::Definitions;
 
 import salix::HTML;
 import salix::App;
@@ -25,56 +29,83 @@ import Set;
 import Node;
 
 
-alias TripleModel = tuple[str id, Model sensors, Model states, Model activations, RunFunc runFunc, bool hasParsed];
+alias TripleModel = tuple[str id, Model sensors, Model states, Model activations, RunFunc runFunc, bool hasParsed, start[SDSL] sSensors, start[SDSL] sStates, start[SDSL] sActivations];
 
 App[TripleModel] initTripleApp(
     str id,
-    str idSensors, start[SDSL] sSensors, ParseFunc parseFuncSensors,
-    str idStates, start[SDSL] sStates, ParseFunc parseFuncStates,
-    str idActivations, start[SDSL] sActivations, ParseFunc parseFuncActivations,
-    RunFunc runFunc = void(list[node] n){;})
+    str idSensors, start[SDSL] sSensors, 
+    str idStates, start[SDSL] sStates, 
+    str idActivations, start[SDSL] sActivations, 
+    RunFunc runFunc = nothing())
   = webApp(makeApp(
     id,TripleModel() { return initTriple(
         id,
-        idSensors, sSensors, parseFuncSensors, 
-        idStates, sStates, parseFuncStates, 
-        idActivations, sActivations, parseFuncActivations, 
+        idSensors, sSensors,  
+        idStates, sStates,  
+        idActivations, sActivations, 
         runFunc=runFunc);},
     withIndex(id, id, tripleViewWithToolbar, css=["/demo/Statemachine/triple.css"]), updateTriple),
     |project://sdsl/src/sheetdsl|);
 
+
+Matrix sensorDefaults = [
+  ["T1", "\"Temperature Sensor\"", "integer",  "digital"]
+];
+
+Matrix stateDefaults = [
+  ["1", "\"Heat\"",      "2",    "\"Transition when warmed up\"",   "T1 \> 30"],
+  ["2", "\"Spin\"",      "3",    "\"Correct temperature reached\"", "T1 \> 95"],
+  ["",  "",              "1",    "\"Machine too cold\"",            "T1 \< 30"],
+  ["3", "\"Empty\"",     "",     "",                            ""]
+];
+Matrix activationDefaults = [
+  ["1", "\"Heat\"",            "",    "",   "x",  ""],
+  ["2", "\"Heat and spin\"",   "x",   "",   "x",  ""],
+  ["3", "\"Empty drum\"",      "",    "x",  "",   ""]
+];
+
+
 TripleModel initTriple(
     str id,
-    str idSensors, start[SDSL] sSensors, ParseFunc parseFuncSensors,
-    str idStates , start[SDSL] sStates, ParseFunc parseFuncStates,
-    str idActivations, start[SDSL] sActivations, ParseFunc parseFuncActivations,
-    RunFunc runFunc = void(list[node] n){;}) 
-    = <id,
-       initModel(idSensors, sSensors, parseFunc=parseFuncSensors),
-       initModel(idStates, sStates, parseFunc=parseFuncStates),
-       initModel(idActivations, sActivations, parseFunc=parseFuncActivations),
-       runFunc, false
-       >;
+    str idSensors, start[SDSL] sSensors, 
+    str idStates , start[SDSL] sStates, 
+    str idActivations, start[SDSL] sActivations, 
+    RunFunc runFunc = nothing()) 
+     = <id,
+        initModel(idSensors, sSensors, sheet=spreadSheet(sheetData=spreadSheetData(25, sensorDefaults, labels=getSheetLabels(sSensors)))),
+        initModel(idStates, sStates, sheet=spreadSheet(sheetData=spreadSheetData(25, stateDefaults, labels=getSheetLabels(sStates)))),
+        initModel(idActivations, sActivations, sheet=spreadSheet(sheetData=spreadSheetData(25, activationDefaults, labels=getSheetLabels(sActivations)))),
+        runFunc, false, sSensors, sStates, sActivations
+        >;
 
-data Msg = sensors(Msg msg) | states(Msg msg) | activations(Msg msg) | parse() | run();
+data Msg = sensorsmsg(Msg msg) | statesmsg(Msg msg) | activationsmsg(Msg msg) | parse() | run();
 
 TripleModel updateTriple(Msg msg, TripleModel model){
     model.hasParsed = false;
     switch (msg){
-        case sensors(Msg msg):
+        case sensorsmsg(Msg msg):
             model.sensors = update(msg, model.sensors);
-        case states(Msg msg):
+        case statesmsg(Msg msg):
             model.states = update(msg, model.states);
-        case activations(Msg msg):
+        case activationsmsg(Msg msg):
             model.activations = update(msg, model.activations);
         case parse():{
             model.hasParsed = true;
             model.sensors = update(parseSheet(), model.sensors);
             model.states = update(parseSheet(), model.states);
             model.activations = update(parseSheet(), model.activations);
+
+            if (model.sensors.sheet.comments == [] && model.states.sheet.comments == [] && model.activations.sheet.comments == []) {
+                value sensors=          node2adt(parseMatrix(model.sensors.parsedData.parsed, model.sSensors), #Sensor);
+                value states=            node2adt(parseMatrix(model.states.parsedData.parsed, model.sStates), #State);
+                value activations= node2adt(parseMatrix(model.activations.parsedData.parsed, model.sActivations), #Activations);
+
+                model.states = replaceErrors(check(states, sensors),model.states);
+                model.activations = replaceErrors(check(activations, states),model.activations);
+            }
         }
         case run():{
-            println("runSheet");
+            println("runSheet...");
         }
     }
     return model;
@@ -101,7 +132,7 @@ void tripleViewWithToolbar(TripleModel m) {
                 importCSV(m.sensors.name);
                 exportCSV(m.sensors.name);
             });
-            mapView(sensors, m.sensors, view);
+            mapView(sensorsmsg, m.sensors, view);
         });
         div(() {
             h2(class("title"),"States & Transitions");
@@ -109,7 +140,7 @@ void tripleViewWithToolbar(TripleModel m) {
                 importCSV(m.states.name);
                 exportCSV(m.states.name);
             });
-            mapView(states, m.states, view);
+            mapView(statesmsg, m.states, view);
         });
         div(() {
             h2(class("title"),"Activations");
@@ -117,7 +148,7 @@ void tripleViewWithToolbar(TripleModel m) {
                 importCSV(m.activations.name);
                 exportCSV(m.activations.name);
             });
-            mapView(activations, m.activations, view);
+            mapView(activationsmsg, m.activations, view);
         });
     });
 }

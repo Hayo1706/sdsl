@@ -1,0 +1,13 @@
+top block sudoku {
+    col1 ?= column "1": Int;
+    col2 ?= column "2": Int;
+    col3 ?= column "3": Int;
+    col4 ?= column "4": Int;
+    col5 ?= column "5": Int;
+    col6 ?= column "6": Int;
+    col7 ?= column "7": Int;
+    col8 ?= column "8": Int;
+    col9 ?= column "9": Int;
+}
+
+syntax Int = [1-9];

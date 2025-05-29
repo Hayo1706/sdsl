@@ -1,0 +1,8 @@
+/* horizontale blokranden – na elke 3e rij */
+.htCore tr:nth-child(3n)  td {  /* rijen 3, 6, 9 */
+    border-bottom: 3px solid #5f5f5f;
+  }
+  /* verticale blokranden – na elke 3e kolom */
+.htCore td:nth-child(3n) {      /* kolommen 3, 6, 9 */
+    border-right: 3px solid #5f5f5f;
+  }

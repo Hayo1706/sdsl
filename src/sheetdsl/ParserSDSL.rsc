@@ -2,6 +2,7 @@
 module sheetdsl::ParserSDSL
 
 import sheetdsl::Syntax;
+import sheetdsl::util::SyntaxReader;
 import Node;
 import IO;
 import List;
@@ -17,8 +18,6 @@ import Type;
 
 alias Matrix = list[list[value]];
 
-int length(l) = (0| it + 1 | _ <- l);
-
 loc CoordsToLoc(int row, int col){
     str coords = "<row>" + "," + "<col>";
     return |cell://<coords>|(0,0,<0,0>,<0,0>);
@@ -31,16 +30,6 @@ bool isEmptyRow(list[value] row, int colStart = 0, int colEnd = size(row)){
         }
     }
     return true;
-}
-
-map[str, Block] getBlocks(start[SDSL] s){
-    map[str, Block] blocks = ();
-    visit(s){
-        case Block b:{
-            blocks["<b.name>"] = b;
-        }
-    }
-    return blocks;
 }
 
 private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
@@ -70,9 +59,12 @@ private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int star
             continue;
         }
         for (Element column <- b.elems){
-            if(column is col && column.assign is required){
-                if (m[row][colIdx] == "") messages += error("Cell is required but empty", CoordsToLoc(row,colIdx));
-                else empty = false;
+            if(column is col){
+                if (m[row][colIdx] == ""){
+                    if (column.assign is required) messages += error("Cell is required but empty", CoordsToLoc(row,colIdx));
+                } else {
+                    empty = false;
+                }
                 colIdx += 1;
             }
             else if(column is sub){
@@ -88,7 +80,7 @@ private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int star
                         messages += newMessages[0];
                     }
                 }
-                colIdx += length(blocks["<column.subBlock.name>"].elems);
+                colIdx += (0| it + 1 | _ <- blocks["<column.subBlock.name>"].elems);
             }
         }
         row = nextRow;
@@ -125,11 +117,23 @@ private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colSt
             else if(column is sub){
                 if ("<column.multiple>" == "*")
                     nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
-                vals["<column.name>"] = parseM(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
-                colIdx += length(blocks["<column.subBlock.name>"].elems);
+
+                list[node] subInstances = parseM(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
+
+                if (subInstances == [])
+                    vals["<column.name>"] = nothing(); // If no sub-instances, set to nothing
+                else if ("<column.multiple>" == "*")
+                    vals["<column.name>"] = column.assign is optional ? just(subInstances) : subInstances;
+                else 
+                    vals["<column.name>"] = column.assign is optional ? just(subInstances[0]) : subInstances[0];
+                
+                
+                colIdx += (0| it + 1 | _ <- blocks["<column.subBlock.name>"].elems);
             }
         }
         row = nextRow;
+        if((true | it && (vals[val] == "" || vals[val] == nothing()) | val <- vals))
+            continue; // Skip empty rows
         instances += makeNode("<b.name>",keywordParameters=vals);
     }
     return instances;

@@ -36,20 +36,11 @@ void main() {
     println(typeOf(f).parameters[0][0]);
     iprintln(f);
     map[str, value] vals = ();
-    vals["val1"] = "Form1";
-    vals["val2"] = "Name1";
+    vals["val1"] = "";
+    vals["val2"] = "";
     instances = makeNode("hallo",keywordParameters=vals);
-    make(#Tesing, "hallo", [], vals);
-    println(getChildren(instances));
-
-    Maybe[bool] tes = nothing();
-    Maybe[bool] tes1 = just(true);
-
-    t1 = typeOf(tes);
-    t2 = typeOf(tes1);
-    println(t1);
-    println(t2.name);
-
+    getKeywordParameters("f"(10, "abc", height=0));
+    println((true | it && vals[val] == "" | val <- vals));
 }
 
 void testFunc(list[Tesing2] t){

@@ -8,19 +8,40 @@ str intToColumnName(int i) = (i >= 26 ? intToColumnName(i/26): "") + alpha[i % 2
 
 
 SpreadsheetData spreadSheetData() 
-    = spreadSheetData(alpha, numeric,[["" | int _ <- [0..size(alpha)]] | int i <-[0..size(numeric)] ]);
+    = spreadSheetData(alpha, numeric,[["" | int _ <- [0..size(alpha)]] | int i <-[0..size(numeric)]]);
 
 SpreadsheetData spreadSheetData(int rows, int cols) 
     = spreadSheetData([intToColumnName(i) | int i <- [0..cols]], ["<i>" | int i <- [0..rows]], [["" | int i2 <- [0..cols]] | int i <-[0..rows]]); 
 
-SpreadsheetData spreadSheetData(int rows, list[str] labels) 
-    = spreadSheetData(labels, ["<i>" | int i <- [0..rows]], [["" | int _ <- [0..size(labels)]] | int i <-[0..rows]]); 
+SpreadsheetData spreadSheetData(int rows, list[str] labels, list[str] rowHeaders = ["<i>" | int i <- [0..rows]]) 
+    = spreadSheetData(labels, rowHeaders, [["" | int _ <- [0..size(labels)]] | int i <-[0..rows]]); 
+
+//Extend the given data until it reaches the given number of rows
+SpreadsheetData spreadSheetData(int rows, list[list[value]] \data, list[str] labels=[intToColumnName(i) | int i <- [0..size(\data[0])]], list[str] rowHeaders = ["<i>" | int i <- [0..rows]]) {
+    int dataRows = size(\data);
+    if (size(labels) != size(\data[0])) 
+        throw ("The number of columns in the data does not match the number of labels");
+    if (dataRows > rows)
+        throw ("The number of rows given is greater than the number of rows in the data");
+
+    for (int i <- [0..rows - dataRows]) {
+        \data += [["" | int _ <- [0..size(labels)]]];
+    }
+    return spreadSheetData(labels, rowHeaders, \data);
+}
+
+SpreadsheetData spreadSheetData(int rows, list[str] labels, list[list[value]] \data)
+    = spreadSheetData(labels, ["<i>" | int i <- [0..rows]], \data);
 
 
 data SpreadSheet
     = spreadSheet(
         SpreadsheetData sheetData = spreadSheetData(),
-        list[CommentData] comments = []
+        list[CommentData] comments = [],
+        int rowHeights = 30,
+        int colWidths = 120,
+        bool enableColHeaders = true,
+        bool enableRowHeaders = true
     );
 
 data SpreadsheetData

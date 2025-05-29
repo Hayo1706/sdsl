@@ -1,4 +1,4 @@
-top block Sensors {
+top block Activations {
     stepnum = column "Step number": Int;
     description = column "Description": Str;
     motor1 ?= column "Motor1": Check;
@@ -7,6 +7,5 @@ top block Sensors {
     valve1 ?= column "Valve1": Check;
 }
 syntax Int = [0-9]+;
-syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
 syntax Str = [\"]![\"]* [\"];
 syntax Check = "x" | "X";

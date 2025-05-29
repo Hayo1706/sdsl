@@ -11,12 +11,11 @@ block Transition {
 
 }
 
-syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
 syntax Int = [0-9]+;
 syntax Bool = "true" | "false";
-
-syntax Severity = "info" | "warn" | "alarm";
 syntax Str = [\"]![\"]* [\"];
+syntax Id = [A-Z 0-9 _] !<< [A-Z][A-Z 0-9 _]* !>> [A-Z 0-9 _];
+
 syntax Expr
   = bracket "(" Expr ")"
   | "!" Expr

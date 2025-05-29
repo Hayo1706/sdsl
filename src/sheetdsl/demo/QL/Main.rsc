@@ -22,11 +22,9 @@ import util::Webserver;
 import Exception;
 import util::IDEServices;
 
-
-
 App[Model] main() {
-    start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/test.sdsl|);
-    return init("TaxExample", parsed, parseFunc=parse2, runFunc=run2);
+    start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/QL.sdsl|);
+    return initToolBar("TaxExample", parsed, parseFunc=just(parse2), runFunc=just(run2));
 }
 
 set[Message] parse2(list[node] nodes) {

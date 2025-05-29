@@ -19,7 +19,7 @@ private str HANDSONTABLE_SRC = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0
 private str HANDSONTABLE_CSS = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/handsontable.min.css";
 private str HANDSONTABLE_THEME = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/ht-theme-main.min.css";
 
-str initcode(str name, int length, str colheaders, int amountCols, &t rowHeights, &t colWidths) = "
+str initcode(SpreadSheet sheet, str name) = "
     'function debounce(func, delay) {
     '  let timeout;
     '  let buffer = []; 
@@ -34,19 +34,26 @@ str initcode(str name, int length, str colheaders, int amountCols, &t rowHeights
     '  };
     '}
     'const sendBufferedChanges = debounce(<name>_sendChangedData, 300);
+    'const Regex_strip = /\<\\/?(?:pre|span)\\b[^\>]*\\b(?:id\\s*=\\s*([\\x27\\x22])hltx\\1)?[^\>]*\>/gi;
     'class CustomEditor extends Handsontable.editors.TextEditor {
     ' setValue(newValue) {
-    '  const strippedValue = newValue?.replace(/\<\\/?[^\>]*\\bid=\\x22hltx\\x22[^\>]*\>/g, \'\')?.trim() ?? \'\';
-    '  this.TEXTAREA.value = strippedValue;
+    '  this._original = newValue;
+    '  this._strippedValue = newValue?.replace(Regex_strip, \'\')?.trim() ?? \'\';
+    '  this.TEXTAREA.value = this._strippedValue;
     ' }
     ' focus() {
     '   super.focus();
     '   this.TEXTAREA.select();
     ' }
+    ' getValue() {
+    '   let value = this.TEXTAREA.value;
+    '   if (value == this._strippedValue) return this._original;
+    '   return value.replace(Regex_strip, \'\').trim();
+    ' }
     '}
     'hot = new Handsontable(document.getElementById(\'<name>_spreadsheet\'), {
-    '  maxCols: <amountCols>,
-    '  rowHeaders: true,
+    '  maxCols: <size(sheet.sheetData.columnHeaders)>,
+    '  rowHeaders: <sheet.enableRowHeaders>,
     '  renderAllColumns : true,
     '  themeName: \'ht-theme-main-dark\',
     '  fixedColumnsStart: 0,
@@ -54,10 +61,10 @@ str initcode(str name, int length, str colheaders, int amountCols, &t rowHeights
     '  manualColumnResize: true,
     '  manualRowResize: true,
     '  contextMenu: true,
-    '  colWidths:<colWidths>,
-    '  rowHeights: <rowHeights>,
+    '  colWidths:<sheet.colWidths>,
+    '  rowHeights: <sheet.rowHeights>,
     '  comments: {displayOnHover: true, readOnly: true},
-    '  colHeaders: <colheaders>,
+    '  colHeaders: <sheet.enableColHeaders ? replaceAll("<sheet.sheetData.columnHeaders>","\"","\'"): false>,
     '  afterChange: function(changes, source) {
     '    const changedValues = [];
     '    changes?.forEach((element) =\> {
@@ -67,7 +74,7 @@ str initcode(str name, int length, str colheaders, int amountCols, &t rowHeights
     '      changedValues.push({
     '        row: element[0],
     '        col: element[1],
-    '        change: element[3].replace(/\<\\/?[^\>]*\\bid=\\x22hltx\\x22[^\>]*\>/g, \'\')
+    '        change: element[3].replace(Regex_strip, \'\')
     '      });
     '        
     '    });
@@ -84,9 +91,9 @@ str initcode(str name, int length, str colheaders, int amountCols, &t rowHeights
 
 Attr onSheetChange(Msg(map[str,value]) f) = event("edit",jsonPayload(f));
 
-void spreadsheet(SpreadSheet sheet, str name, Attr event, &t rowHeights = 30, &t colWidths = 120){
+void spreadsheet(SpreadSheet sheet, str name, Attr event){
   withExtra(("sheet": sheet), (){
-    div(class("salix-alien"), id(name), attr("onClick", initcode(name, size(sheet.sheetData.\data), replaceAll("<sheet.sheetData.columnHeaders>","\"","\'"), size(sheet.sheetData.columnHeaders), rowHeights, colWidths)), () {
+    div(class("salix-alien"), id(name), attr("onClick", initcode(sheet, name)), () {
       script(src(HANDSONTABLE_SRC), \type("text/javascript"));
       link(\rel("stylesheet"), href(HANDSONTABLE_CSS));
       link(\rel("stylesheet"), href(HANDSONTABLE_THEME));

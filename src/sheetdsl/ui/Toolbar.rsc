@@ -5,12 +5,12 @@ import salix::Node;
 import IO;
 
 void toolBar(str name, &t parseEvent, &t runEvent, bool canParse, bool canRun) {
-    div(style(("display":"inline-block", "gap":"2px")), () {
-        importCSV(name);
-        exportCSV(name);
-        parsebtn(parseEvent, canParse);
-        runbtn(runEvent, canRun);
-    });
+    // div(style(("display":"inline-block", "gap":"2px")), () {
+    //     importCSV(name);
+    //     exportCSV(name);
+    //     parsebtn(parseEvent, canParse);
+    //     runbtn(runEvent, canRun);
+    // });
 }
 
 str onClickBtnInit(str name) = "(function(){document.getElementById(\'<name>_import-file-input\').click();})();";

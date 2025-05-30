@@ -39,7 +39,7 @@ App[ToolBarModel] main() {
             sheetData=spreadSheetData(9, sudokuDefaults),
             rowHeights=50, 
             colWidths=50, 
-            enableColHeaders=false, 
+            enableColHeaders=true, 
             enableRowHeaders=false
         ), 
         parseFunc=just(parse2), extraCss=["/sheetdsl/demo/Sudoku/sudoku.css"]);

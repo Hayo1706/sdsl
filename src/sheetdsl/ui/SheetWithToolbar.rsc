@@ -24,7 +24,7 @@ App[ToolBarModel] initToolBar(str id, start[SDSL] s, int rows = 25,
                               bool canRunWithWarnings = true,
                               list[str] extraCss = [])
     = webApp(makeApp(id,ToolBarModel() { return initToolBarModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings);},
-      withIndex(id, id, viewWithToolbar, css=["sheetdsl/ui/min.css"] + extraCss), updateToolbar),|project://sdsl/src|);
+      withIndex(id, id, viewWithToolbar, css=["sheetdsl/ui/min.css","sheetdsl/ui/custom-tabulator.min.css"] + extraCss), updateToolbar),|project://sdsl/src|);
 
 ToolBarModel initToolBarModel(str id, start[SDSL] s, int rows = 25, 
                               SpreadSheet sheet = getStartingSpreadSheet(s, rows),

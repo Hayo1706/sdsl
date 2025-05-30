@@ -49,12 +49,12 @@ alias Model = tuple[str name,
 
 App[Model] initSheetWebApp(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
     ParseFunc parseFunc=nothing(), RunFunc runFunc=nothing()) 
-      = webApp(initSheetApp(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc),|project://sdsl|);
+      = webApp(initSheetApp(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc),|project://sdsl/src|);
 
 
 SalixApp[Model] initSheetApp(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
     ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing())
-      = makeApp(id,Model() { return initModel(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc);}, withIndex(id, id, view, css=["sdsl/ui/min.css"]), update);
+      = makeApp(id,Model() { return initModel(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc);}, withIndex(id, id, view, css=["sheetdsl/ui/min.css", "sheetdsl/ui/custom-tabulator.min.css"]), update);
 
 
 

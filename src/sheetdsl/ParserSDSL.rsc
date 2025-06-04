@@ -37,7 +37,7 @@ private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
         int colIdx = colStart;
         for (Element column <- b.elems){
             if(column is col && column.assign is required){
-                if (m[r][colStart] != "") return r;
+                if (m[r][colIdx] != "") return r;
             }
             colIdx += 1;
         }

@@ -146,7 +146,7 @@ set[Message] ifcondition(Expr cond, Question then, TEnv env) {
     return messages;
 }
 
-set[Message] check(q:question(_,_,_, nocamthing(), just(cond)), TEnv env)
+set[Message] check(q:question(_,_,_, nothing(), just(cond)), TEnv env)
     = ifcondition(cond, q, env);
 
 set[Message] check(q:question(_,_,t, just(e), just(cond)), TEnv env)

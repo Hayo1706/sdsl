@@ -8,11 +8,7 @@ block Question {
   question =    column "Question": Str;
   types =        column "Type": Types;
   value ?=      column "Value": Expr;
-  conditions* = block Condition;
-}
-
-block Condition {
-  condition = column "Extra Condition": Expr;
+  condition ?= column "Condition": Expr;
 }
 
 syntax Id = [a-z A-Z 0-9 _] !<< [a-z A-Z][a-z A-Z 0-9 _]* !>> [a-z A-Z 0-9 _];

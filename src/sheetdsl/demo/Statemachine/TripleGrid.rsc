@@ -72,9 +72,9 @@ TripleModel initTriple(
     str idActivations, start[SDSL] sActivations, 
     RunFunc runFunc = nothing()) 
      = <id,
-        initModel(idSensors, sSensors, sheet=spreadSheet(sheetData=spreadSheetData(25, sensorDefaults, labels=getSheetLabels(sSensors)))),
-        initModel(idStates, sStates, sheet=spreadSheet(sheetData=spreadSheetData(25, stateDefaults, labels=getSheetLabels(sStates)))),
-        initModel(idActivations, sActivations, sheet=spreadSheet(sheetData=spreadSheetData(25, activationDefaults, labels=getSheetLabels(sActivations)))),
+        initModel(idSensors, sSensors, sheet=spreadSheet(sheetData=spreadSheetData(sensorDefaults,rows=25, labels=getSheetLabels(sSensors)))),
+        initModel(idStates, sStates, sheet=spreadSheet(sheetData=spreadSheetData(stateDefaults, rows=25,labels=getSheetLabels(sStates)))),
+        initModel(idActivations, sActivations, sheet=spreadSheet(sheetData=spreadSheetData(activationDefaults, rows=25,labels=getSheetLabels(sActivations)))),
         runFunc, false, sSensors, sStates, sActivations
         >;
 

@@ -19,6 +19,11 @@ public str highlightErrorSubstring(str code, int \start, int end) {
           + "\</pre id=\"hltx\"\>";
 }
 
+loc CoordsToLoc(int row, int col){
+    str coords = "<row>" + "," + "<col>";
+    return |cell://<coords>|(0,0,<0,0>,<0,0>);
+}
+
 data CellLoc  = CellLoc(int row, int col);
 CellLoc locOf(Message msg) {
     if(/<row:[0-9]+>,<col:[0-9]+>/ := msg.at.authority)

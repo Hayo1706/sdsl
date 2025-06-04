@@ -32,10 +32,10 @@ private bool simmilarType(nodeType, argType) {
 
 private tuple[str name, bool multiple, bool optional] isAdt(argType, bool multiple = false, bool optional = false) {
     if (\adt("Maybe", [args]) := argType)
-        return isAdt(args, multiple=multiple, optional = true);
+        return isAdt(args, multiple=multiple, optional=true);
 
     if (\list(args) := argType)
-        return isAdt(args, multiple=true, optional = optional);
+        return isAdt(args, multiple=true, optional=optional);
 
     if (\adt(argName,_) := argType)
         return <argName, multiple, optional>;
@@ -53,7 +53,7 @@ public value node2adt(node n, type[&T] t) {
     constructors: for (c:cons(label(consName, _), args, _, _) <- alts){
         //Check if the constructor has the same amount of arguments as the node
         if (size(args) != size(params))
-            continue;
+            continue constructors;
 
         //Check if the constructor has the same names and types as the node
         arguments: for (label(argName, argType) <- args){
@@ -66,7 +66,7 @@ public value node2adt(node n, type[&T] t) {
         for (label(name, argType) <- args){
             //Check if column is a subblock
             isadt = isAdt(argType);
-            if (isadt.name == "" || params[name] == nothing()) //If the type is not an adt, we can just use the value
+            if (isadt[0] == "" || params[name] == nothing()) //If the type is not an adt, we can just use the value
                 vals += params[name];
             else {
                 if (isadt.multiple && list[node] children := params[name] || just(list[node] children) := params[name]) {

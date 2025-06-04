@@ -3,6 +3,7 @@ module sheetdsl::ParserSDSL
 
 import sheetdsl::Syntax;
 import sheetdsl::util::SyntaxReader;
+import sheetdsl::util::Error;
 import Node;
 import IO;
 import List;
@@ -18,11 +19,6 @@ import Type;
 
 alias Matrix = list[list[value]];
 
-loc CoordsToLoc(int row, int col){
-    str coords = "<row>" + "," + "<col>";
-    return |cell://<coords>|(0,0,<0,0>,<0,0>);
-}
-
 bool isEmptyRow(list[value] row, int colStart = 0, int colEnd = size(row)){
     for (int i <- [colStart..colEnd]) {
         if (row[i] != "") {
@@ -37,7 +33,7 @@ private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
         int colIdx = colStart;
         for (Element column <- b.elems){
             if(column is col && column.assign is required){
-                if (m[r][colStart] != "") return r;
+                if (m[r][colIdx] != "") return r;
             }
             colIdx += 1;
         }

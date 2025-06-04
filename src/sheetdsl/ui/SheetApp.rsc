@@ -43,27 +43,36 @@ alias Model = tuple[str name,
                     map[int, type[&T<:Tree]] colTypes, 
                     ParsedData parsedData,
                     ParseFunc parseFunc,
-                    RunFunc runFunc
+                    RunFunc runFunc,
+                    bool autoParse
               ];
-
-
-App[Model] initSheetWebApp(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
-    ParseFunc parseFunc=nothing(), RunFunc runFunc=nothing()) 
-      = webApp(initSheetApp(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc),|project://sdsl|);
-
-
-SalixApp[Model] initSheetApp(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
-    ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing())
-      = makeApp(id,Model() { return initModel(id, s, sheet, rows=rows, parseFunc=parseFunc, runFunc=runFunc);}, withIndex(id, id, view, css=["sdsl/ui/min.css"]), update);
-
-
 
 ParsedData getStartingParseData(int rows, int cols) = <[["" | int _ <- [0..cols]] | int i <-[0..rows]], [["" | int _ <- [0..cols]] | int i <-[0..rows]]>;
 SpreadSheet getStartingSpreadSheet(start[SDSL] s, int rows) = spreadSheet(sheetData=spreadSheetData(rows, getSheetLabels(s)));
 
+App[Model] initSheetWebApp(str id, start[SDSL] s, int rows = 25, 
+    SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
+    ParseFunc parseFunc=nothing(), RunFunc runFunc=nothing(),
+    bool autoParse = true,
+    list[str] extraCss = []
+    ) 
+    = webApp(initSheetApp(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse, extraCss=extraCss),|project://sdsl/src|);
 
-Model initModel(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
-            ParseFunc parseFunc=nothing(), RunFunc runFunc = nothing()) {
+
+SalixApp[Model] initSheetApp(str id, start[SDSL] s, int rows = 25, 
+    SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
+    ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(),
+    bool autoParse = true,
+    list[str] extraCss = []
+    )
+    = makeApp(id,Model() { return initModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse);}, withIndex(id, id, view, css=["sheetdsl/ui/min.css"] + extraCss), update);
+
+
+Model initModel(str id, start[SDSL] s, int rows = 25, 
+SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
+ParseFunc parseFunc=nothing(), RunFunc runFunc = nothing(),
+bool autoParse = true
+) {
   map[int, type[&T<:Tree]] colTypes = ();
   SyntaxDefinition lay = (SyntaxDefinition)`layout WS = [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000]* !\>\> [\\u0009-\\u000D \\u0020 \\u0085 \\u00A0 \\u1680 \\u180E \\u2000-\\u200A \\u2028 \\u2029 \\u202F \\u205F \\u3000];`;
   Grammar gr = \layouts(syntax2grammar(lay + {syn | SyntaxDefinition syn <- s.top.grammarDefs}), \layouts("WS"), {});
@@ -78,7 +87,7 @@ Model initModel(str id, start[SDSL] s, int rows = 25, SpreadSheet sheet = getSta
       colTypes[i] = type(s,gr.rules);
   }
 
-  return fillWithDefaults(sheet.sheetData.\data, <id,s,sheet,colTypes, getStartingParseData(size(sheet.sheetData.rowHeaders), size(sheet.sheetData.columnHeaders)), parseFunc, runFunc>);
+  return fillWithDefaults(sheet.sheetData.\data, <id,s,sheet,colTypes, getStartingParseData(size(sheet.sheetData.rowHeaders), size(sheet.sheetData.columnHeaders)), parseFunc, runFunc, autoParse>);
 }
 
 
@@ -119,6 +128,16 @@ Model replaceErrors(set[Message] errs, Model model, bool ParseError = false){
   return model;
 }
 
+Model parse(Model model) {
+    set[Message] errs = checkRequiredBlocks(model.parsedData.raw, model.s);
+    bool missingCells = size(errs) > 0;
+    if (!missingCells && model.parseFunc != nothing())
+      errs = model.parseFunc.val(parseMatrix(model.parsedData.parsed, model.s));
+    return replaceErrors(errs, model, ParseError=missingCells);
+}
+
+
+
 Model update(Msg msg, Model model){
   switch (msg){
     case sheetEdit(map[str,value] diff):{
@@ -127,13 +146,12 @@ Model update(Msg msg, Model model){
           model = parseChanges(row, col, change, model);
         }
       }
+      if (model.autoParse && (0 | it + 1 | commentData(_,_,_, warning()) <- model.sheet.comments) == size(model.sheet.comments) ) {
+        model = parse(model);
+      }
     }
     case parseSheet():{
-      set[Message] errs = checkRequiredBlocks(model.parsedData.raw, model.s);
-      bool missingCells = size(errs) > 0;
-      if (!missingCells && model.parseFunc != nothing())
-        errs = model.parseFunc.val(parseMatrix(model.parsedData.parsed, model.s));
-      model = replaceErrors(errs, model, ParseError=missingCells);
+      model = parse(model);
     }
     case runSheet():{
       if (model.runFunc != nothing()) 

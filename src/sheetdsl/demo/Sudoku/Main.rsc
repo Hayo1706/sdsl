@@ -1,9 +1,10 @@
 module sheetdsl::demo::Sudoku::Main
 
 import sheetdsl::ParserSDSL;
-import sheetdsl::ui::SheetWithToolbar;
+import sheetdsl::ui::SheetApp;
 import sheetdsl::Syntax;
 import sheetdsl::util::SyntaxReader;
+import sheetdsl::util::Error;
 import sheetdsl::SpreadSheets;
 
 import util::Maybe;
@@ -14,6 +15,7 @@ import salix::HTML;
 import salix::App;
 import salix::Core;
 import String;
+import Set;
 
 syntax Int = [0-9];
 
@@ -31,10 +33,9 @@ Matrix sudokuDefaults = [
 
 
 
-App[ToolBarModel] main() {
+App[Model] main() {
     start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/Sudoku/sudoku.sdsl|);
-    println("Parsed");
-    return initToolBar("Sudoku", parsed, 
+    return initSheetWebApp("Sudoku", parsed, 
         sheet=spreadSheet(
             sheetData=spreadSheetData(9, sudokuDefaults),
             rowHeights=50, 
@@ -42,7 +43,7 @@ App[ToolBarModel] main() {
             enableColHeaders=false, 
             enableRowHeaders=false
         ), 
-        parseFunc=just(parse2), extraCss=["/sheetdsl/demo/Sudoku/sudoku.css"]);
+        parseFunc=just(parse2), extraCss=["sheetdsl/demo/Sudoku/sudoku.css"]);
 }
 
 set[Message] parse2(list[node] nodes) {
@@ -56,13 +57,27 @@ set[Message] parse2(list[node] nodes) {
         grid += [vals];
     }
     
-    set[Message] msgs = {};
-    int N = size(grid);           // 9 voor een standaard sudoku
     
-    for (int r <- [0..N-1])
-        for (int c <- [0..N-1]) {
+    set[Message] msgs = {};
+    int N = size(grid);
+    
+    // First check if all the starting values are unchanged
+    for (int r <- [0..N]) {
+        for (int c <- [0..N]) {
             Maybe[Int] mv = grid[r][c];
-            if (mv == nothing())           // lege cel: niks te controleren
+            str val = mv == nothing() ? "" : "<mv.val>";
+            if (sudokuDefaults[r][c] != "" && sudokuDefaults[r][c] != val) 
+                msgs += error("Starting value <sudokuDefaults[r][c]> cannot be changed", CoordsToLoc(r, c));
+        }
+    }
+    if (size(msgs) > 0) {
+        return msgs;
+    }
+
+    for (int r <- [0..N])
+        for (int c <- [0..N]) {
+            Maybe[Int] mv = grid[r][c];
+            if (mv == nothing())
                 continue;
             
             int mvVal = toInt("<mv.val>");
@@ -70,7 +85,7 @@ set[Message] parse2(list[node] nodes) {
             int r0 = (r / 3) * 3;
             int c0 = (c / 3) * 3;
 
-            for (int cc <- [0..N-1]) {
+            for (int cc <- [0..N]) {
                 testing = grid[r][cc];
 
                 //Same row

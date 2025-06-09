@@ -42,7 +42,7 @@ private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
 }
 
 
-public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) = checkRequiredBlock(m, s.top.topBlock.b, 0, size(m), 0, getBlocks(s))[0];
+public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) = checkRequiredBlock(m, s.top.topBlock, 0, size(m), 0, getBlocks(s))[0];
 private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
     set[Message] messages = {};
     bool empty = true;
@@ -88,7 +88,7 @@ Matrix removeEmptyRows(Matrix m) = [l | list[value] l <- m, !isEmptyRow(l)];
 
 public list[node] parseMatrix(Matrix m, start[SDSL] s) {
     filtered = removeEmptyRows(m);
-    return parseM(filtered, s.top.topBlock.b, 0, size(filtered), 0, getBlocks(s));
+    return parseM(filtered, s.top.topBlock, 0, size(filtered), 0, getBlocks(s));
 } 
 
 private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){

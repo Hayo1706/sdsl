@@ -37,7 +37,7 @@ App[Model] main() {
     start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/Sudoku/sudoku.sdsl|);
     return initSheetWebApp("Sudoku", parsed, 
         sheet=spreadSheet(
-            sheetData=spreadSheetData(9, sudokuDefaults),
+            sheetData=spreadSheetData(sudokuDefaults),
             rowHeights=50, 
             colWidths=50, 
             enableColHeaders=false, 

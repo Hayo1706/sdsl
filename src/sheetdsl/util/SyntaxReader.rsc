@@ -14,7 +14,7 @@ map[str, Block] getBlocks(start[SDSL] s){
     return blocks;
 }
 
-list[Element] getSheetColumns(start[SDSL] s, Block block = s.top.topBlock.b, map[str, Block] blocks = getBlocks(s)){
+list[Element] getSheetColumns(start[SDSL] s, Block block = s.top.topBlock, map[str, Block] blocks = getBlocks(s)){
     list[Element] columns = [];
     for (Element e <- block.elems){
         if (e is col)
@@ -26,4 +26,4 @@ list[Element] getSheetColumns(start[SDSL] s, Block block = s.top.topBlock.b, map
     return columns;
 }
 
-list[str] getSheetLabels(start[SDSL] s) = ["<e.column.name>"[1..-1] | Element e <- getSheetColumns(s)]; 
+list[str] getSheetLabels(start[SDSL] s) = ["<e.column.header>"[1..-1] | Element e <- getSheetColumns(s)]; 

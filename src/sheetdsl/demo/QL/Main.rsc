@@ -31,6 +31,7 @@ set[Message] parse2(list[node] nodes) {
     if (size(nodes) == 0) {
         return {};
     }
+    println("Parsed adt: <node2adt(nodes[0], #Forms)>");
     return check(node2adt(nodes[0], #Forms));
 }
 

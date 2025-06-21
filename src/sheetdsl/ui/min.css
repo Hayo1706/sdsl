@@ -87,3 +87,7 @@ button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.wtHolder{
+    overflow-anchor: none !important;
+}

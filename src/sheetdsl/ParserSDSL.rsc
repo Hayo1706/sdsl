@@ -41,9 +41,19 @@ private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
     return size(m);
 }
 
+private int countColumnsInBlock(Block b, map[str, Block] blocks) {
+    int colCount = 0;
+    for (Element column <- b.elems) {
+        if (column is col) 
+            colCount += 1;
+        else
+            colCount += countColumnsInBlock(blocks["<column.subBlock.name>"], blocks);
+    }
+    return colCount;
+}
 
 public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) = checkRequiredBlock(m, s.top.topBlock, 0, size(m), 0, getBlocks(s))[0];
-private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
+private tuple[set[Message] messages, bool empty] checkRequiredBlock(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
     set[Message] messages = {};
     bool empty = true;
     int row = startRow;
@@ -68,15 +78,10 @@ private tuple[set[Message], bool] checkRequiredBlock(Matrix m, Block b, int star
                     nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
 
                 tuple[set[Message], bool] newMessages = checkRequiredBlock(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
-                if (column.assign is required){
+                if (column.assign is required || !newMessages[1])
                     messages += newMessages[0];
-                }
-                else if (column.assign is optional){
-                    if (!newMessages[1]){
-                        messages += newMessages[0];
-                    }
-                }
-                colIdx += (0| it + 1 | _ <- blocks["<column.subBlock.name>"].elems);
+            
+                colIdx += countColumnsInBlock(blocks["<column.subBlock.name>"], blocks);
             }
         }
         row = nextRow;
@@ -98,16 +103,12 @@ private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colSt
         int colIdx = colStart;
         int nextRow = row + 1;
         map[str, value] vals = ();
-
         for (Element column <- b.elems){
+            value raw = nothing();
             if(column is col){
-                if (column.assign is required){
-                    vals["<column.name>"] = m[row][colIdx];
-                }
-                else { // Wrap in Maybe if optional
-                    if (m[row][colIdx] != "") vals["<column.name>"] = just(m[row][colIdx]);
-                    else vals["<column.name>"] = nothing();
-                }
+                if (m[row][colIdx] != "")
+                    raw = m[row][colIdx];
+
                 colIdx += 1;
             }
             else if(column is sub){
@@ -115,17 +116,13 @@ private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colSt
                     nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
 
                 list[node] subInstances = parseM(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
+                if (subInstances != [])
+                    raw = "<column.multiple>" == "*" ? subInstances : subInstances[0];
 
-                if (subInstances == [])
-                    vals["<column.name>"] = nothing(); // If no sub-instances, set to nothing
-                else if ("<column.multiple>" == "*")
-                    vals["<column.name>"] = column.assign is optional ? just(subInstances) : subInstances;
-                else 
-                    vals["<column.name>"] = column.assign is optional ? just(subInstances[0]) : subInstances[0];
-                
-                
-                colIdx += (0| it + 1 | _ <- blocks["<column.subBlock.name>"].elems);
+                colIdx += countColumnsInBlock(blocks["<column.subBlock.name>"], blocks);
             }
+            // Wrap raw in just if optional (Dont need to wrap if its already nothing())
+            vals["<column.name>"] = column.assign is required || raw == nothing() ? raw : just(raw);
         }
         row = nextRow;
         if((true | it && (vals[val] == "" || vals[val] == nothing()) | val <- vals))

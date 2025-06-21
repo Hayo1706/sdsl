@@ -24,14 +24,13 @@ import util::IDEServices;
 
 App[Model] main() {
     start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/QL.sdsl|);
-    return initToolBar("TaxExample", parsed, parseFunc=just(parse2), runFunc=just(run2));
+    return initToolBar("TaxExample", parsed, parseFunc=just(parse2), runFunc=just(run2), rows=10000);
 }
 
 set[Message] parse2(list[node] nodes) {
     if (size(nodes) == 0) {
         return {};
     }
-    println("Parsed adt: <node2adt(nodes[0], #Forms)>");
     return check(node2adt(nodes[0], #Forms));
 }
 

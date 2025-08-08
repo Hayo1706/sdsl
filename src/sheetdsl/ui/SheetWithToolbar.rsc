@@ -17,7 +17,7 @@ import Message;
 
 alias ToolBarModel = tuple[Model sheet,bool hasParsed, bool canRunWithWarnings];
 
-App[ToolBarModel] initToolBar(str id, start[SDSL] s, int rows = 25, 
+App[ToolBarModel] initToolBar(str id, start[MGL] s, int rows = 25, 
                               SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
                               ParseFunc parseFunc = nothing(), 
                               RunFunc runFunc = nothing(), 
@@ -26,7 +26,7 @@ App[ToolBarModel] initToolBar(str id, start[SDSL] s, int rows = 25,
     = webApp(makeApp(id,ToolBarModel() { return initToolBarModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings);},
       withIndex(id, id, viewWithToolbar, css=["sheetdsl/ui/min.css"] + css), updateToolbar),|project://sdsl/src|);
 
-ToolBarModel initToolBarModel(str id, start[SDSL] s, int rows = 25, 
+ToolBarModel initToolBarModel(str id, start[MGL] s, int rows = 25, 
                               SpreadSheet sheet = getStartingSpreadSheet(s, rows),
                               ParseFunc parseFunc = nothing(), 
                               RunFunc runFunc = nothing(), 

@@ -12,31 +12,28 @@ import sheetdsl::util::Node2adt;
 import util::Maybe;
 import ParseTree;
 import Node;
-import IO;
-import salix::HTML;
 import salix::App;
-import salix::Core;
-import salix::Index;
-import Content;
-import util::Webserver;
-import Exception;
 import util::IDEServices;
-
+import util::Benchmark;
+import IO;
 App[Model] main() {
-    start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/QL/QL.sdsl|);
-    return initToolBar("TaxExample", parsed, parseFunc=just(parse2), runFunc=just(run2), rows=10000);
+    start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/QL/QL.mgl|);
+    return initToolBar("TaxExample", parsed, parseFunc=just(semanticChecks), runFunc=just(run), rows=10000);
 }
 
-set[Message] parse2(list[node] nodes) {
-    if (size(nodes) == 0) {
+set[Message] semanticChecks(list[node] nodes) {
+    if (size(nodes) == 0)
         return {};
-    }
-    return check(node2adt(nodes[0], #Forms));
+    timeSemanticStart = realTime();
+    temp = check(node2adt(nodes[0], #Forms));
+    timeSemanticEnd = realTime();
+    println("Semantic checks took <timeSemanticEnd - timeSemanticStart> ms");
+    return temp;
 }
 
-void run2(list[node] nodes) {
-    println("\nConverting node to adt...\n");
-    if (Forms f := node2adt(nodes[0], #Forms)){
-        showInteractiveContent(runQL(f));
-    }
+void run(list[node] nodes) {
+    if (size(nodes) == 0)
+        return;
+    showInteractiveContent(runQL(node2adt(nodes[0], #Forms)));
+    
 }

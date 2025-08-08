@@ -15,35 +15,27 @@ import ParseTree;
 
 set[LanguageService] myLanguageContributor() = {
     parser(Tree (str input, loc src) {
-        return parse(#start[SDSL], input, src);
+        return parse(#start[MGL], input, src);
     }),
-    lenses(myLenses),
-    executor(myCommands)
+    lenses(myLenses)
 };
 
 data Command 
-  = runSDSL(start[SDSL] sheet) 
-  | compileSDSL(start[SDSL] sheet);
+  = runSDSL(start[MGL] sheet) 
+  | compileSDSL(start[MGL] sheet);
 
-rel[loc,Command] myLenses(start[SDSL] sheet) = {
+rel[loc,Command] myLenses(start[MGL] sheet) = {
     <sheet@\loc, runSDSL(sheet, title="Run...")>,
     <sheet.src, compileSDSL(sheet, title="Compile")>
 };
 
-void myCommands(runSDSL(start[SDSL] sheet)) {
-    showInteractiveContent(runWebSDSL(sheet));
-}
-
-void myCommands(compileSDSL(start[SDSL] sheet)) {
-    println("Compiling SDSL");
-}
 
 void main() {
     registerLanguage(
         language(
             pathConfig(srcs = [|std:///|, |project://sdsl/src|]),
-            "SDSL",
-            "sdsl",
+            "MGL",
+            "mgl",
             "IDE",
             "myLanguageContributor"
         )

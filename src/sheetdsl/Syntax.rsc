@@ -4,7 +4,7 @@ extend lang::std::Layout;
 extend lang::rascal::\syntax::Rascal;
 
 
-start syntax SDSL = "top" Block topBlock Block* subBlocks SyntaxDefinition+ grammarDefs; 
+start syntax MGL = "top" Block topBlock Block* subBlocks SyntaxDefinition+ grammarDefs; 
 
 syntax Str = [\"]![\"]* [\"];
 syntax Id = [a-z A-Z 0-9 _] !<< [a-z A-Z][a-z A-Z 0-9 _]* !>> [a-z A-Z 0-9 _];

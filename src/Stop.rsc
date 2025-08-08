@@ -24,7 +24,7 @@ import Message;
 data Tesing = hallo(str val1 = "", str val2 = "");
 data Tesing2 = hallo2(str val1 = "", str val2 = "");
 void main() {
-    start[SDSL] parsed = parse(#start[SDSL], |project://sdsl/src/testing.sdsl|);
+    start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/testing.sdsl|);
     Module m = parseModule(|project://sdsl/src/sheetdsl/demo/QL/Definitions.rsc|);
     Grammar gr = module2grammar(m).grammar;
     println(gr);

@@ -1,0 +1,11 @@
+Rascal
+    filter docstring_rm_comments
+    filter rm_comments_in_strings ' /* */
+    filter rm_comments_in_strings ' // 
+    filter rm_comments_in_strings " /* */
+    filter rm_comments_in_strings " // 
+    filter call_regexp_common C++
+    extension rsc
+    extension mgl
+    extension myql
+    3rd_gen_scale 1.36

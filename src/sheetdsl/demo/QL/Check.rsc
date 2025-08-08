@@ -223,10 +223,3 @@ set[Message] check((Expr)`<Expr left> - <Expr right>`, TEnv env) = validateArith
 set[Message] check((Expr)`<Expr left> * <Expr right>`, TEnv env) = validateArithmeticOperands(left, right, env);
 set[Message] check((Expr)`<Expr left> / <Expr right>`, TEnv env) = validateArithmeticOperands(left, right, env);
 
-
-void printTEnv(TEnv tenv) {
-    for (<str x, Types t> <- tenv) {
-        println("<x>: <t>");
-    }
-}
- 

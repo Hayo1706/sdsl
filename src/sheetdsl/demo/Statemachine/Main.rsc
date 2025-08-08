@@ -13,9 +13,9 @@ import ParseTree;
 import IO;
 import Set;
 App[TripleModel] main() {
-    start[SDSL] sensors = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_sensors.sdsl|);
-    start[SDSL] states = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_states.sdsl|);
-    start[SDSL] activations = parse(#start[SDSL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_activations.sdsl|);
+    start[MGL] sensors = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_sensors.mgl|);
+    start[MGL] states = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_states.mgl|);
+    start[MGL] activations = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/Statemachine/sm_activations.mgl|);
     return initTripleApp("Statemachine", "Sensors",     sensors,    
                                          "States",      states,    
                                          "Activations", activations,

@@ -31,7 +31,7 @@ import lang::rascal::format::Grammar;
 import lang::rascal::grammar::definition::Productions;
 import lang::rascal::grammar::definition::Layout;
 import lang::rascal::grammar::definition::Symbols;
-
+import util::Benchmark;
 
 alias ParsedData = tuple[Matrix raw, Matrix parsed];
 alias ParseFunc = Maybe[set[Message](list[node])];
@@ -39,7 +39,7 @@ alias RunFunc   = Maybe[void(list[node])];
 
 
 alias Model = tuple[str name,
-                    start[SDSL] s, 
+                    start[MGL] s, 
                     SpreadSheet sheet, 
                     map[int, type[&T<:Tree]] colTypes, 
                     ParsedData parsedData,
@@ -49,9 +49,9 @@ alias Model = tuple[str name,
               ];
 
 ParsedData getStartingParseData(int rows, int cols) = <[["" | int _ <- [0..cols]] | int i <-[0..rows]], [["" | int _ <- [0..cols]] | int i <-[0..rows]]>;
-SpreadSheet getStartingSpreadSheet(start[SDSL] s, int rows) = spreadSheet(sheetData=spreadSheetData(rows, getSheetLabels(s)));
+SpreadSheet getStartingSpreadSheet(start[MGL] s, int rows) = spreadSheet(sheetData=spreadSheetData(rows, getSheetLabels(s)));
 
-App[Model] initSheetWebApp(str id, start[SDSL] s, int rows = 25, 
+App[Model] initSheetWebApp(str id, start[MGL] s, int rows = 25, 
     SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
     ParseFunc parseFunc=nothing(), RunFunc runFunc=nothing(),
     bool autoParse = true,
@@ -60,7 +60,7 @@ App[Model] initSheetWebApp(str id, start[SDSL] s, int rows = 25,
     = webApp(initSheetApp(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse, extraCss=extraCss),|project://sdsl/src|);
 
 
-SalixApp[Model] initSheetApp(str id, start[SDSL] s, int rows = 25, 
+SalixApp[Model] initSheetApp(str id, start[MGL] s, int rows = 25, 
     SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
     ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(),
     bool autoParse = true,
@@ -69,7 +69,7 @@ SalixApp[Model] initSheetApp(str id, start[SDSL] s, int rows = 25,
     = makeApp(id,Model() { return initModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse);}, withIndex(id, id, view, css=["sheetdsl/ui/min.css"] + extraCss), update);
 
 
-Model initModel(str id, start[SDSL] s, int rows = 25, 
+Model initModel(str id, start[MGL] s, int rows = 25, 
 SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
 ParseFunc parseFunc=nothing(), RunFunc runFunc = nothing(),
 bool autoParse = true
@@ -105,6 +105,7 @@ private Model fillWithDefaults(Matrix raw, Model m){
 
 
 Model parseChanges(int row, int col, value change, Model model){
+    int timeStart = realTime();
     model.parsedData.raw[row][col] = change;
     try{ 
       model.parsedData.parsed[row][col] = change != "" ? parse(model.colTypes[col], change, CoordsToLoc(row, col)) :"";
@@ -115,6 +116,8 @@ Model parseChanges(int row, int col, value change, Model model){
       model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError( <location> )", parseerror());
       model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
     }
+    int timeEnd = realTime();
+    println("Parsing change took: <(timeEnd - timeStart)>ms for cell (<row>,<col>)");
     return model;
 }
 
@@ -130,10 +133,17 @@ Model replaceErrors(set[Message] errs, Model model, bool ParseError = false){
 }
 
 Model parse(Model model) {
+    int timeMissingStart = realTime();
     set[Message] errs = checkRequiredBlocks(model.parsedData.raw, model.s);
+    int timeMissingEnd = realTime();
+    println("Checking for missing cells took: <(timeMissingEnd - timeMissingStart)>ms");
+
+    int timeParseStart = realTime();
     bool missingCells = size(errs) > 0;
     if (!missingCells && model.parseFunc != nothing())
       errs = model.parseFunc.val(parseMatrix(model.parsedData.parsed, model.s));
+    int timeParseEnd = realTime();
+    println("Parsing sheet took: <(timeParseEnd - timeParseStart)>ms");
     return replaceErrors(errs, model, ParseError=missingCells);
 }
 
@@ -152,7 +162,10 @@ Model update(Msg msg, Model model){
       }
     }
     case parseSheet():{
+      timeMetaOnlystart = realTime();
       model = parse(model);
+      int timeMetaOnlyEnd = realTime();
+      println("Meta total parsing took: <(timeMetaOnlyEnd - timeMetaOnlystart)>ms");
     }
     case runSheet():{
       if (model.runFunc != nothing()) 

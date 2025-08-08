@@ -4,7 +4,7 @@ import sheetdsl::Syntax;
 import sheetdsl::ParserSDSL;
 import Map;
 
-map[str, Block] getBlocks(start[SDSL] s){
+map[str, Block] getBlocks(start[MGL] s){
     map[str, Block] blocks = ();
     visit(s){
         case Block b:{
@@ -14,7 +14,7 @@ map[str, Block] getBlocks(start[SDSL] s){
     return blocks;
 }
 
-list[Element] getSheetColumns(start[SDSL] s, Block block = s.top.topBlock, map[str, Block] blocks = getBlocks(s)){
+list[Element] getSheetColumns(start[MGL] s, Block block = s.top.topBlock, map[str, Block] blocks = getBlocks(s)){
     list[Element] columns = [];
     for (Element e <- block.elems){
         if (e is col)
@@ -26,4 +26,4 @@ list[Element] getSheetColumns(start[SDSL] s, Block block = s.top.topBlock, map[s
     return columns;
 }
 
-list[str] getSheetLabels(start[SDSL] s) = ["<e.column.header>"[1..-1] | Element e <- getSheetColumns(s)]; 
+list[str] getSheetLabels(start[MGL] s) = ["<e.column.header>"[1..-1] | Element e <- getSheetColumns(s)]; 

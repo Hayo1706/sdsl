@@ -52,7 +52,7 @@ private int countColumnsInBlock(Block b, map[str, Block] blocks) {
     return colCount;
 }
 
-public set[Message] checkRequiredBlocks(Matrix m, start[SDSL] s) = checkRequiredBlock(m, s.top.topBlock, 0, size(m), 0, getBlocks(s))[0];
+public set[Message] checkRequiredBlocks(Matrix m, start[MGL] s) = checkRequiredBlock(m, s.top.topBlock, 0, size(m), 0, getBlocks(s))[0];
 private tuple[set[Message] messages, bool empty] checkRequiredBlock(Matrix m, Block b, int startRow, int endRow, int colStart, map[str, Block] blocks){
     set[Message] messages = {};
     bool empty = true;
@@ -91,7 +91,7 @@ private tuple[set[Message] messages, bool empty] checkRequiredBlock(Matrix m, Bl
 
 Matrix removeEmptyRows(Matrix m) = [l | list[value] l <- m, !isEmptyRow(l)];
 
-public list[node] parseMatrix(Matrix m, start[SDSL] s) {
+public list[node] parseMatrix(Matrix m, start[MGL] s) {
     filtered = removeEmptyRows(m);
     return parseM(filtered, s.top.topBlock, 0, size(filtered), 0, getBlocks(s));
 } 
@@ -126,7 +126,7 @@ private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colSt
         }
         row = nextRow;
         if((true | it && (vals[val] == "" || vals[val] == nothing()) | val <- vals))
-            continue; // Skip empty rows
+            continue; // Skip empty blocks
         instances += makeNode("<b.name>",keywordParameters=vals);
     }
     return instances;

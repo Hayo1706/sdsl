@@ -20,18 +20,21 @@ private str HANDSONTABLE_CSS = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0
 private str HANDSONTABLE_THEME = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/ht-theme-main.min.css";
 
 str initcode(SpreadSheet sheet, str name) = "
-    'function debounce(func, delay) {
-    '  let timeout;
-    '  let buffer = []; 
-    '  return function(args) {
-    '    console.log(args);
-    '    buffer.push(...args);
-    '    clearTimeout(timeout);
-    '    timeout = setTimeout(() =\> {
-    '      func(buffer);
-    '      buffer = [];
-    '    }, delay);
-    '  };
+    'function debounce(fn, delay=300, limit = 80) {
+    '  const te = new TextEncoder();
+    '  let buf = [], timer;
+    '
+    'function flush() {
+    '   if (!buf.length) return;
+    '   fn(buf.slice());
+    '   buf.length = 0;
+    '}
+    'return change =\> {
+    '   if (buf.length \> limit) flush();
+    '   buf.push(change);
+    '   clearTimeout(timer);
+    '   timer = setTimeout(flush, delay);
+    '};
     '}
     'const sendBufferedChanges = debounce(<name>_sendChangedData, 300);
     'const Regex_strip = /\<\\/?(?:pre|span)\\b[^\>]*\\b(?:id\\s*=\\s*([\\x27\\x22])hltx\\1)?[^\>]*\>/gi;
@@ -55,7 +58,7 @@ str initcode(SpreadSheet sheet, str name) = "
     '  maxCols: <size(sheet.sheetData.columnHeaders)>,
     '  rowHeaders: <sheet.enableRowHeaders>,
     '  renderAllColumns : true,
-    '  themeName: \'ht-theme-main-dark\',
+    '  themeName: \'ht-theme-main\',
     '  fixedColumnsStart: 0,
     '  fixedRowsTop: 0,
     '  manualColumnResize: true,
@@ -71,15 +74,13 @@ str initcode(SpreadSheet sheet, str name) = "
     '      if (element[2] === null) element[2] = \'\';
     '      if (element[3] === null) element[3] = \'\';
     '      if (element[2] == element[3]) return;
-    '      changedValues.push({
+    '      sendBufferedChanges({
     '        row: element[0],
     '        col: element[1],
     '        change: element[3].replace(Regex_strip, \'\')
     '      });
     '        
     '    });
-    '    if (changedValues.length != 0)
-    '       sendBufferedChanges(changedValues, 300);
     '  },
     '  renderer: \'html\',
     '  licenseKey: \'non-commercial-and-evaluation\',

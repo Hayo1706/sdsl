@@ -29,13 +29,13 @@ import Set;
 import Node;
 
 
-alias TripleModel = tuple[str id, Model sensors, Model states, Model activations, RunFunc runFunc, bool hasParsed, start[SDSL] sSensors, start[SDSL] sStates, start[SDSL] sActivations];
+alias TripleModel = tuple[str id, Model sensors, Model states, Model activations, RunFunc runFunc, bool hasParsed, start[MGL] sSensors, start[MGL] sStates, start[MGL] sActivations];
 
 App[TripleModel] initTripleApp(
     str id,
-    str idSensors, start[SDSL] sSensors, 
-    str idStates, start[SDSL] sStates, 
-    str idActivations, start[SDSL] sActivations, 
+    str idSensors, start[MGL] sSensors, 
+    str idStates, start[MGL] sStates, 
+    str idActivations, start[MGL] sActivations, 
     RunFunc runFunc = nothing())
   = webApp(makeApp(
     id,TripleModel() { return initTriple(
@@ -67,9 +67,9 @@ Matrix activationDefaults = [
 
 TripleModel initTriple(
     str id,
-    str idSensors, start[SDSL] sSensors, 
-    str idStates , start[SDSL] sStates, 
-    str idActivations, start[SDSL] sActivations, 
+    str idSensors, start[MGL] sSensors, 
+    str idStates , start[MGL] sStates, 
+    str idActivations, start[MGL] sActivations, 
     RunFunc runFunc = nothing()) 
      = <id,
         initModel(idSensors, sSensors, sheet=spreadSheet(sheetData=spreadSheetData(sensorDefaults,rows=25, labels=getSheetLabels(sSensors)))),

@@ -20,16 +20,26 @@ body{
 .warning.htCommentCell::after { border-top-color:#e0a800 !important; }
 
 .parseerror .errorText{
-    color: red !important;
-    all: revert;
+  color: red !important;
+  font-weight: 700 !important;
+  all: revert; /* or 'all: unset;' for a thorough reset */
 }  
+
+.structuralerror .errorText{
+  color: red !important;
+  font-weight: 700 !important;
+  all: revert; /* or 'all: unset;' for a thorough reset */
+}  
+
 .error .errorText{
-    color: rgb(255, 78, 78) !important;
-    all: revert;
+  color: rgb(255, 78, 78) !important;
+  font-weight: 700 !important;
+  all: revert; /* or 'all: unset;' for a thorough reset */
 }  
 .warning .errorText{
-    color: rgb(224, 168, 0) !important;
-    all: revert;
+  color: rgb(224, 168, 0) !important;
+  font-weight: 700 !important;
+  all: revert; /* or 'all: unset;' for a thorough reset */
 }
 
 #hltx{

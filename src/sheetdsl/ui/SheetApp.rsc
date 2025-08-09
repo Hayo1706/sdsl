@@ -113,18 +113,23 @@ Model parseChanges(int row, int col, value change, Model model){
       model.sheet.comments = removeComment(model.sheet.comments, row, col);
     }
     catch ParseError(loc location):{
+      println("Parse error in cell (<row>,<col>): <location> with change: <change>");
       model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError( <location> )", parseerror());
       model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
     }
     int timeEnd = realTime();
-    println("Parsing change took: <(timeEnd - timeStart)>ms for cell (<row>,<col>)");
+    println("Parsing change took: <(timeEnd - timeStart)>ms");
     return model;
 }
 
-Model replaceErrors(set[Message] errs, Model model, bool ParseError = false){
+Model replaceErrors(set[Message] errs, Model model, bool structuralerr = false){
   list[CommentData] tempComments = []; 
+  // Reset all highlights of previous errors
+  for (CommentData c <- model.sheet.comments) {
+    model.sheet.sheetData.\data[c.row][c.col] = model.parsedData.raw[c.row][c.col];
+  }
   for (Message err <- errs){
-    ans = messageToCommentData(err, ParseError);
+    ans = messageToCommentData(err, structuralerr ? structuralerror() : err is warning ? warning() : error());
     tempComments += ans[0];
     model.sheet.sheetData.\data[ans[1]][ans[2]] = highlightErrorSubstring(model.parsedData.raw[ans[1]][ans[2]], err.at.begin.column,err.at.end.column);
   }
@@ -144,7 +149,7 @@ Model parse(Model model) {
       errs = model.parseFunc.val(parseMatrix(model.parsedData.parsed, model.s));
     int timeParseEnd = realTime();
     println("Parsing sheet took: <(timeParseEnd - timeParseStart)>ms");
-    return replaceErrors(errs, model, ParseError=missingCells);
+    return replaceErrors(errs, model, structuralerr=missingCells);
 }
 
 
@@ -157,7 +162,7 @@ Model update(Msg msg, Model model){
           model = parseChanges(row, col, change, model);
         }
       }
-      if (model.autoParse && (0 | it + 1 | commentData(_,_,_, warning()) <- model.sheet.comments) == size(model.sheet.comments) ) {
+      if (model.autoParse && (0 | it + 1 | commentData(_,_,_, parseerror()) <- model.sheet.comments) == 0) {
         model = parse(model);
       }
     }

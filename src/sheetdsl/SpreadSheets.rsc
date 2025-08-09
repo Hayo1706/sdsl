@@ -54,7 +54,8 @@ data SpreadsheetData
 data ErrorType 
  = error()
  | warning()
- | parseerror();
+ | parseerror()
+ | structuralerror();
 
 CommentData commentData(int row, int col, str text, ErrorType class)
   = commentData(row, col, comment(text), class);

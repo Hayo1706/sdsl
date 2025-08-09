@@ -112,14 +112,18 @@ TripleModel updateTriple(Msg msg, TripleModel model){
 }
 
 void tripleViewWithToolbar(TripleModel m) {
-    bool noErrors = (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.sensors.sheet.comments) == 0
-        && (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.states.sheet.comments) == 0
-        && (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.activations.sheet.comments) == 0;
+    bool noErrors = 
+               (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.sensors.sheet.comments) == 0
+            && (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.states.sheet.comments) == 0
+            && (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.activations.sheet.comments) == 0
+            && (0 | it + 1 | commentData(_,_,_, structuralerror()) <- m.sensors.sheet.comments) == 0
+            && (0 | it + 1 | commentData(_,_,_, structuralerror()) <- m.states.sheet.comments) == 0
+            && (0 | it + 1 | commentData(_,_,_, structuralerror()) <- m.activations.sheet.comments) == 0;
 
     bool canParse = !m.hasParsed && noErrors;
     bool canRun = m.hasParsed && (0 | it + 1 | commentData(_,_,_, error()) <- m.sensors.sheet.comments) == 0
-        && (0 | it + 1 | commentData(_,_,_, error()) <- m.states.sheet.comments) == 0
-        && (0 | it + 1 | commentData(_,_,_, error()) <- m.activations.sheet.comments) == 0;
+                              && (0 | it + 1 | commentData(_,_,_, error()) <- m.states.sheet.comments) == 0
+                              && (0 | it + 1 | commentData(_,_,_, error()) <- m.activations.sheet.comments) == 0;
     
     div(style(("display":"inline-block", "gap":"2px")), () {
         parsebtn(parse(), canParse);

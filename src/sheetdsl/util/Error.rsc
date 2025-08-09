@@ -28,12 +28,12 @@ data CellLoc  = CellLoc(int row, int col);
 CellLoc locOf(Message msg) {
     if(/<row:[0-9]+>,<col:[0-9]+>/ := msg.at.authority)
         return CellLoc(toInt(row), toInt(col));
-    throw "Error: <msg> has no location, all errors should have a location set";
+    throw "Error: <msg> has no location, all errors need to have a location set";
 }
 
-public tuple[CommentData, int, int] messageToCommentData(Message msg, bool isParseError) {
+public tuple[CommentData, int, int] messageToCommentData(Message msg, ErrorType errorType) {
     CellLoc location = locOf(msg);
-    return <commentData(location.row, location.col, comment("<msg.msg>"), isParseError ? parseerror() : msg is warning ? warning() : error()), 
+    return <commentData(location.row, location.col, comment("<msg.msg>"), errorType), 
             location.row, 
             location.col>;
 }

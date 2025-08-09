@@ -28,14 +28,18 @@ bool isEmptyRow(list[value] row, int colStart = 0, int colEnd = size(row)){
     return true;
 }
 
-private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart){
+private int getNextBlockInstance(Matrix m, int rowStart, Block b, int colStart, map[str, Block] blocks){
     for(int r <- [rowStart+1..size(m)]){
         int colIdx = colStart;
         for (Element column <- b.elems){
-            if(column is col && column.assign is required){
+            if(column is col){
                 if (m[r][colIdx] != "") return r;
+                colIdx += 1;
             }
-            colIdx += 1;
+            else if(column is sub){
+                colIdx += countColumnsInBlock(blocks["<column.subBlock.name>"], blocks);
+            }
+            
         }
     }
     return size(m);
@@ -75,7 +79,7 @@ private tuple[set[Message] messages, bool empty] checkRequiredBlock(Matrix m, Bl
             }
             else if(column is sub){
                 if ("<column.multiple>" == "*")
-                    nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
+                    nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart, blocks));
 
                 tuple[set[Message], bool] newMessages = checkRequiredBlock(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
                 if (column.assign is required || !newMessages[1])
@@ -113,7 +117,7 @@ private list[node] parseM(Matrix m, Block b, int startRow, int endRow, int colSt
             }
             else if(column is sub){
                 if ("<column.multiple>" == "*")
-                    nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart));
+                    nextRow = min(endRow,getNextBlockInstance(m,row,b,colStart, blocks));
 
                 list[node] subInstances = parseM(m, blocks["<column.subBlock.name>"], row, nextRow, colIdx, blocks);
                 if (subInstances != [])

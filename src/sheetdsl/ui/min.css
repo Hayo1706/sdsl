@@ -31,6 +31,7 @@ button:disabled {
 }
 
 .parseerror.htCommentCell::after { border-top-color:red !important; }
+.structuralerror.htCommentCell::after { border-top-color:red !important; }
 
 .error { border-bottom:1px solid red !important; }
 .error.htCommentCell::after { border-top-color:red !important; }
@@ -43,6 +44,13 @@ button:disabled {
     font-weight: 700 !important;
     all: revert; /* or 'all: unset;' for a thorough reset */
 }  
+
+.structuralerror .errorText{
+    color: red !important;
+    font-weight: 700 !important;
+    all: revert; /* or 'all: unset;' for a thorough reset */
+}  
+
 .error .errorText{
     color: rgb(255, 78, 78) !important;
     font-weight: 700 !important;

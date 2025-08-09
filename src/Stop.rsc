@@ -20,31 +20,19 @@ import Map;
 import Node;
 import Set;
 import Message;
+import sheetdsl::ParserSDSL;
+import sheetdsl::ui::SheetWithToolbar;
+import sheetdsl::Syntax;
+import sheetdsl::ui::SheetApp;
+import IO;
+import salix::App;
 
-data Tesing = hallo(str val1 = "", str val2 = "");
-data Tesing2 = hallo2(str val1 = "", str val2 = "");
-void main() {
-    start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/testing.sdsl|);
-    Module m = parseModule(|project://sdsl/src/sheetdsl/demo/QL/Definitions.rsc|);
-    Grammar gr = module2grammar(m).grammar;
-    println(gr);
-
-    void(list[&T]) f = testFunc;
-
-    //now get type of the list
-
-    println(typeOf(f).parameters[0][0]);
-    iprintln(f);
-    map[str, value] vals = ();
-    vals["val1"] = "";
-    vals["val2"] = "";
-    instances = makeNode("hallo",keywordParameters=vals);
-    getKeywordParameters("f"(10, "abc", height=0));
-    println((true | it && vals[val] == "" | val <- vals));
+App[Model] main() {
+    start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/testing.mgl|);
+    return initSheetWebApp("InvoiceTest", parsed, parseFunc=just(semanticChecks), rows=20);
 }
 
-void testFunc(list[Tesing2] t){
-    println(t[0].val1);
-    println(t[0].val2);
+set[Message] semanticChecks(list[node] nodes) {
+    return {};
 }
     

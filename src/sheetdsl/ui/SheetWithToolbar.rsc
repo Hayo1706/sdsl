@@ -65,7 +65,6 @@ void viewWithToolbar(ToolBarModel m) {
   
   div(class("hot-wrapper"),() {
     toolBar(m.sheet.name, parseSheet(), runSheet(), canParse, canRun);
-    // mapView(sheetMsg, m.sheet, view);
     view(m.sheet);
   });
 }

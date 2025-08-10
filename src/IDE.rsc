@@ -3,11 +3,6 @@ module IDE
 import util::LanguageServer;
 import util::Reflective;
 import util::IDEServices;
-import IO;
-import ValueIO;
-import List;
-import salix::App;
-import sheetdsl::ui::SheetApp;
 
 import sheetdsl::Syntax;
 import Message;

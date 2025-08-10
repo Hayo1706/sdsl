@@ -71,7 +71,7 @@ private tuple[set[Message] messages, bool empty] checkRequiredBlock(Matrix m, Bl
         for (Element column <- b.elems){
             if(column is col){
                 if (m[row][colIdx] == ""){
-                    if (column.assign is required) messages += error("Cell is required but empty", CoordsToLoc(row,colIdx));
+                    if (column.assign is required) messages += error("StructuralError(Cell is required but empty)", CoordsToLoc(row,colIdx));
                 } else {
                     empty = false;
                 }

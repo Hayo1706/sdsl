@@ -11,16 +11,16 @@ import Map;
 // Check if the type of the node parameter matches the type of the constructor argument 
 // Because the we convert from node to adt, we cant always just check if they are the same types. \adt(_,_) != \node()
 // These can also be wrapped in lists or Maybe, so we need to check for that as well
-private bool simmilarType(nodeType, argType) {
+private bool similarType(nodeType, argType) {
     if (\adt("Maybe", [args1]) := nodeType && \adt("Maybe", [args2]) := argType){
         // If the node is nothing() we have to assume that it is correct
         if (\void() := args1)
             return true;
-        return simmilarType(args1, args2);
+        return similarType(args1, args2);
     }
 
     if (\list(args1) := nodeType && \list(args2) := argType)
-        return simmilarType(args1, args2);
+        return similarType(args1, args2);
 
     if (\node() := nodeType && \adt(_,_) := argType)
         return true;
@@ -58,7 +58,7 @@ public value node2adt(node n, type[&T] t) {
         //Check if the constructor has the same names and types as the node
         arguments: for (label(argName, argType) <- args){
             //Check if node param exists in the given type as constructor argument
-            if (!params[argName]? || !simmilarType(typeOf(params[argName]), argType))
+            if (!params[argName]? || !similarType(typeOf(params[argName]), argType))
                 continue constructors;
         }
         //Construct the arguments for the constructor

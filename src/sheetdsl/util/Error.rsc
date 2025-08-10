@@ -12,7 +12,7 @@ public str highlightErrorSubstring(str code, int \start, int end) {
 
     return "\<pre id=\"hltx\"\>" 
           + before 
-          + "\<span <trim(error) == "" ? "style=\"background: red\"" : ""> id=\"hltx\" class=\"errorText\"\>" 
+          + "\<span id=\"hltx\" class=\"errorText <trim(error) == "" ? "emptycell" : "">\"\>" 
           + error 
           + "\</span id=\"hltx\"\>" 
           + after
@@ -31,9 +31,7 @@ CellLoc locOf(Message msg) {
     throw "Error: <msg> has no location, all errors need to have a location set";
 }
 
-public tuple[CommentData, int, int] messageToCommentData(Message msg, ErrorType errorType) {
+public CommentData messageToCommentData(Message msg, ErrorType errorType) {
     CellLoc location = locOf(msg);
-    return <commentData(location.row, location.col, comment("<msg.msg>"), errorType), 
-            location.row, 
-            location.col>;
+    return commentData(location.row, location.col, comment("<msg.msg>"), errorType);
 }

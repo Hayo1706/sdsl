@@ -30,43 +30,64 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.parseerror.htCommentCell::after { border-top-color:red !important; }
-.structuralerror.htCommentCell::after { border-top-color:red !important; }
 
-.error { border-bottom:1px solid red !important; }
-.error.htCommentCell::after { border-top-color:red !important; }
+:root {
+    /* Severity colors */
+    --color-parseerror: #ff0000;
+    --color-structuralerror: #ff5810; 
+    --color-error: #ff4800; 
+    --color-warning: #e6d03a; 
 
-.warning { border-bottom:1px solid rgb(224, 168, 0) !important; }
-.warning.htCommentCell::after { border-top-color:#e0a800 !important; }
+    /* Background tint for severe cases */
+    --tint-severe: rgba(255, 0, 0, 0.05); /* light red tint */}
 
-.parseerror .errorText{
-    color: red !important;
+/* --- Parse Error --- */
+.parseerror {
+    background-color: var(--tint-severe) !important;
+}
+.parseerror.htCommentCell::after {
+    border-top-color: var(--color-parseerror) !important;
+}
+.parseerror .errorText {
+    color: var(--color-parseerror) !important;
     font-weight: 700 !important;
-    all: revert; /* or 'all: unset;' for a thorough reset */
-}  
+}
 
-.structuralerror .errorText{
-    color: red !important;
-    font-weight: 700 !important;
-    all: revert; /* or 'all: unset;' for a thorough reset */
-}  
+/* --- Structural Error --- */
+.structuralerror .errorText.emptycell{
+    background: var(--color-structuralerror) !important;
+}
+.structuralerror.htCommentCell::after {
+    border-top-color: var(--color-structuralerror) !important;
+}
+.structuralerror .errorText {
+    color: var(--color-structuralerror) !important;
+    font-weight: 650 !important;
+}
 
-.error .errorText{
-    color: rgb(255, 78, 78) !important;
-    font-weight: 700 !important;
-    all: revert; /* or 'all: unset;' for a thorough reset */
-}  
-.warning .errorText{
-    color: rgb(224, 168, 0) !important;
-    font-weight: 700 !important;
-    all: revert; /* or 'all: unset;' for a thorough reset */
+
+/* --- Error --- */
+.error.htCommentCell::after {
+    border-top-color: var(--color-error) !important;
+}
+.error .errorText {
+    color: var(--color-error) !important;
+    font-weight: 600 !important;
+}
+
+/* --- Warning --- */
+.warning.htCommentCell::after {
+    border-top-color: var(--color-warning) !important;
+}
+.warning .errorText {
+    color: var(--color-warning) !important;
+    font-weight: 510 !important;
 }
 
 
 .salix-alien {
     background-color: #0f0f10 !important;
 }
-
 #hltx{
     -webkit-appearance: none;
     font-weight: normal;
@@ -97,10 +118,6 @@ button:disabled {
     overflow:auto !important;
     height: calc(100% - 4em) !important;
 }
-
-
-
-
 .wtHolder{
     overflow-anchor: none !important;
 }

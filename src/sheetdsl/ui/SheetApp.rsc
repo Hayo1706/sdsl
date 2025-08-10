@@ -114,7 +114,7 @@ Model parseChanges(int row, int col, value change, Model model){
     }
     catch ParseError(loc location):{
       println("Parse error in cell (<row>,<col>): <location> with change: <change>");
-      model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError( <location> )", parseerror());
+      model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError(<location>)", parseerror());
       model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
     }
     int timeEnd = realTime();
@@ -129,9 +129,9 @@ Model replaceErrors(set[Message] errs, Model model, bool structuralerr = false){
     model.sheet.sheetData.\data[c.row][c.col] = model.parsedData.raw[c.row][c.col];
   }
   for (Message err <- errs){
-    ans = messageToCommentData(err, structuralerr ? structuralerror() : err is warning ? warning() : error());
-    tempComments += ans[0];
-    model.sheet.sheetData.\data[ans[1]][ans[2]] = highlightErrorSubstring(model.parsedData.raw[ans[1]][ans[2]], err.at.begin.column,err.at.end.column);
+    CommentData ans = messageToCommentData(err, structuralerr ? structuralerror() : err is warning ? warning() : error());
+    tempComments += ans;
+    model.sheet.sheetData.\data[ans.row][ans.col] = highlightErrorSubstring(model.parsedData.raw[ans.row][ans.col], err.at.begin.column,err.at.end.column);
   }
   model.sheet.comments = tempComments;
   return model;

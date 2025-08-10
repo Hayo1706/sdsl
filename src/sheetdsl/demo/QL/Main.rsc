@@ -18,7 +18,7 @@ import util::Benchmark;
 import IO;
 App[Model] main() {
     start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/QL/QL.mgl|);
-    return initToolBar("TaxExample", parsed, parseFunc=just(semanticChecks), runFunc=just(run), rows=10000);
+    return initSheetToolBar("TaxExample", parsed, parseFunc=just(semanticChecks), runFunc=just(run), rows=10000);
 }
 
 set[Message] semanticChecks(list[node] nodes) {

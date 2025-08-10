@@ -17,23 +17,23 @@ import Message;
 
 alias ToolBarModel = tuple[Model sheet,bool hasParsed, bool canRunWithWarnings];
 
-App[ToolBarModel] initToolBar(str id, start[MGL] s, int rows = 25, 
+App[ToolBarModel] initSheetToolBar(str id, start[MGL] s, int rows = 25, 
                               SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
                               ParseFunc parseFunc = nothing(), 
                               RunFunc runFunc = nothing(), 
                               bool canRunWithWarnings = true,
                               list[str] css = [])
-    = webApp(makeApp(id,ToolBarModel() { return initToolBarModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings);},
-      withIndex(id, id, viewWithToolbar, css=["sheetdsl/ui/min.css"] + css), updateToolbar),|project://sdsl/src|);
+    = webApp(makeApp(id,ToolBarModel() { return initTBModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings);},
+      withIndex(id, id, viewWithTB, css=["sheetdsl/ui/min.css"] + css), updateTB),|project://sdsl/src|);
 
-ToolBarModel initToolBarModel(str id, start[MGL] s, int rows = 25, 
+ToolBarModel initTBModel(str id, start[MGL] s, int rows = 25, 
                               SpreadSheet sheet = getStartingSpreadSheet(s, rows),
                               ParseFunc parseFunc = nothing(), 
                               RunFunc runFunc = nothing(), 
                               bool canRunWithWarnings = true) 
     = <initModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=false), false, canRunWithWarnings>;
 
-ToolBarModel updateToolbar(Msg msg, ToolBarModel model){
+ToolBarModel updateTB(Msg msg, ToolBarModel model){
   println("<msg>");
   switch (msg){
     case parseSheet():{
@@ -53,7 +53,7 @@ ToolBarModel updateToolbar(Msg msg, ToolBarModel model){
   return model;
 }
 
-void viewWithToolbar(ToolBarModel m) {
+void viewWithTB(ToolBarModel m) {
   int parseErrors = (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.sheet.sheet.comments);
   int errors = (0 | it + 1 | commentData(_,_,_, error()) <- m.sheet.sheet.comments);
 

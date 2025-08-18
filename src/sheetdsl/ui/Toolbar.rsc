@@ -4,6 +4,9 @@ import salix::Node;
 
 import IO;
 
+// Salix HTML helpers for the toolbar. This function creates a toolbar with buttons for importing and exporting CSV files, parsing the sheet, and running the sheet.
+// These individual buttons can be customized with their own events and conditions for enabling/disabling them.
+// Can also be used individually
 void toolBar(str name, &t parseEvent, &t runEvent, bool canParse, bool canRun) {
     div(style(("display":"inline-block", "gap":"2px")), () {
         importCSV(name);
@@ -57,6 +60,9 @@ str inputFunc(str name) = "
 
 private str PAPAPARSE_SRC = "https://cdn.jsdelivr.net/npm/papaparse@5.5.2/papaparse.min.js";
 
+// This function creates a button to import a CSV file into the Handsontable instance.
+// It uses the PapaParse library to parse the CSV file and load it into the Handsontable instance.
+// The code of the button can be customized with the `impCode` parameter, and the input function that handles the file input can be customized with the `inputFun` parameter.
 void importCSV(str name, str impCode = importcsvJS(name), str inputFun = inputFunc(name)) {
     script(src(PAPAPARSE_SRC), \type("text/javascript"));
     button(id("<name>_import-file"),attr("onClick",onClickBtnInit(name)),"Import csv");
@@ -81,6 +87,7 @@ str exportCode(str name) = "
     '})();
 ";
 
+// This function creates a button to export the Handsontable instance data to a CSV file.
 void exportCSV(str name, str expCode = exportCode(name)) {
     button(id("<name>_export-file"),attr("onClick", expCode), "Export csv");
 }
@@ -97,11 +104,13 @@ str parseOnCtrlS(str scope) = "
     '})});;
 ";
 
+// This function creates a button to parse the Handsontable instance data. It will push a message to the event handler when clicked.
 void parsebtn(&t event, bool canParse, str saveScope = "document.getElementById(\'parseBtn\').parentElement.parentElement"){
     script(\type("text/javascript"),parseOnCtrlS(saveScope));
     button(id("parseBtn"),\onClick(event),disabled(!canParse),"Parse");
 }
 
+// This function creates a button to run the Handsontable instance data. It will push a message to the event handler when clicked.
 void runbtn(&t event, bool canRun) {
     button(id("runBtn"),\onClick(event),disabled(!canRun),"Run");
 }

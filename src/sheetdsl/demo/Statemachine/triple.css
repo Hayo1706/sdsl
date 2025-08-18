@@ -25,6 +25,9 @@ body{
 .parseerror {
   background-color: var(--tint-severe) !important;
 }
+.parseerror .errorText.emptycell{
+  background: var(--color-parseerror) !important;
+}
 .parseerror.htCommentCell::after {
   border-top-color: var(--color-parseerror) !important;
 }
@@ -47,6 +50,9 @@ body{
 
 
 /* --- Error --- */
+.error .errorText.emptycell{
+  background: var(--color-error) !important;
+}
 .error.htCommentCell::after {
   border-top-color: var(--color-error) !important;
 }
@@ -56,6 +62,9 @@ body{
 }
 
 /* --- Warning --- */
+.warning .errorText.emptycell{
+  background: var(--color-warning) !important;
+}
 .warning.htCommentCell::after {
   border-top-color: var(--color-warning) !important;
 }

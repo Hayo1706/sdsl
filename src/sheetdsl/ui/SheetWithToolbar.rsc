@@ -1,7 +1,7 @@
 module sheetdsl::ui::SheetWithToolbar
 
 import sheetdsl::ui::Toolbar;
-import sheetdsl::ui::SheetApp;
+import sheetdsl::SheetApp;
 import sheetdsl::SpreadSheets;
 import sheetdsl::Syntax;
 
@@ -17,22 +17,16 @@ import Message;
 
 alias ToolBarModel = tuple[Model sheet,bool hasParsed, bool canRunWithWarnings];
 
-App[ToolBarModel] initSheetToolBar(str id, start[MGL] s, int rows = 25, 
-                              SpreadSheet sheet = getStartingSpreadSheet(s, rows), 
-                              ParseFunc parseFunc = nothing(), 
-                              RunFunc runFunc = nothing(), 
-                              bool canRunWithWarnings = true,
-                              list[str] css = [])
-    = webApp(makeApp(id,ToolBarModel() { return initTBModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings);},
+App[ToolBarModel] initSheetToolBar(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoParse=false, list[str] css = [])
+    = webApp(makeApp(id,ToolBarModel() { return initTBModel(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings, autoParse=autoParse);}, 
       withIndex(id, id, viewWithTB, css=["sheetdsl/ui/min.css"] + css), updateTB),|project://sdsl/src|);
 
-ToolBarModel initTBModel(str id, start[MGL] s, int rows = 25, 
-                              SpreadSheet sheet = getStartingSpreadSheet(s, rows),
-                              ParseFunc parseFunc = nothing(), 
-                              RunFunc runFunc = nothing(), 
-                              bool canRunWithWarnings = true) 
-    = <initModel(id, s, rows=rows, sheet=sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=false), false, canRunWithWarnings>;
+ToolBarModel initTBModel(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoParse = false) 
+    = <initModel(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse), false, canRunWithWarnings>;
 
+// The toolbar model is just a wrapper around the sheet model, 
+// with an additional flag to indicate whether the sheet has been parsed or not to not accidentally do it multiple times, and to make sure it is parsed before running.
+// Messages are forwarded to the sheet model, which will handle them accordingly.
 ToolBarModel updateTB(Msg msg, ToolBarModel model){
   println("<msg>");
   switch (msg){
@@ -53,6 +47,9 @@ ToolBarModel updateTB(Msg msg, ToolBarModel model){
   return model;
 }
 
+// The view function for the toolbar, which displays the toolbar and the sheet.
+// It also checks the number of parse errors and errors in the comments to determine whether the sheet can be parsed or run.
+// defers to the view function of the sheet model to display it.
 void viewWithTB(ToolBarModel m) {
   int parseErrors = (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.sheet.sheet.comments);
   int errors = (0 | it + 1 | commentData(_,_,_, error()) <- m.sheet.sheet.comments);

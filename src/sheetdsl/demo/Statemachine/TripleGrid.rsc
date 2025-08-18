@@ -5,7 +5,7 @@ import sheetdsl::ParserSDSL;
 import sheetdsl::Syntax;
 
 import sheetdsl::ui::Toolbar;
-import sheetdsl::ui::SheetApp;
+import sheetdsl::SheetApp;
 import sheetdsl::util::Error;
 import sheetdsl::util::SyntaxReader;
 import sheetdsl::util::Node2adt;
@@ -72,9 +72,9 @@ TripleModel initTriple(
     str idActivations, start[MGL] sActivations, 
     RunFunc runFunc = nothing()) 
      = <id,
-        initModel(idSensors, sSensors, sheet=spreadSheet(sheetData=spreadSheetData(sensorDefaults,rows=25, labels=getSheetLabels(sSensors)))),
-        initModel(idStates, sStates, sheet=spreadSheet(sheetData=spreadSheetData(stateDefaults, rows=25,labels=getSheetLabels(sStates)))),
-        initModel(idActivations, sActivations, sheet=spreadSheet(sheetData=spreadSheetData(activationDefaults, rows=25,labels=getSheetLabels(sActivations)))),
+        initModel(idSensors, sSensors, spreadSheet(sheetData=spreadSheetData(sensorDefaults,rows=25, labels=getSheetLabels(sSensors)))),
+        initModel(idStates, sStates, spreadSheet(sheetData=spreadSheetData(stateDefaults, rows=25,labels=getSheetLabels(sStates)))),
+        initModel(idActivations, sActivations, spreadSheet(sheetData=spreadSheetData(activationDefaults, rows=25,labels=getSheetLabels(sActivations)))),
         runFunc, false, sSensors, sStates, sActivations
         >;
 

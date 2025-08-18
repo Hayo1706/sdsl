@@ -19,6 +19,7 @@ private str HANDSONTABLE_SRC = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0
 private str HANDSONTABLE_CSS = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/handsontable.min.css";
 private str HANDSONTABLE_THEME = "https://cdn.jsdelivr.net/npm/handsontable@15.1.0/styles/ht-theme-main.min.css";
 
+// The initcode function generates the JavaScript code that initializes the Handsontable instance with the given sheet data and name.
 str initcode(SpreadSheet sheet, str name) = "
     'function debounce(fn, delay=300, limit = 80) {
     '  const te = new TextEncoder();
@@ -94,11 +95,12 @@ Attr onSheetChange(Msg(map[str,value]) f) = event("edit",jsonPayload(f));
 
 void spreadsheet(SpreadSheet sheet, str name, Attr event){
   withExtra(("sheet": sheet), (){
+    // The Handsontable instance is initialized with the given sheet data, and the name is used to register the alien.
     div(class("salix-alien"), id(name), attr("onClick", initcode(sheet, name)), () {
       script(src(HANDSONTABLE_SRC), \type("text/javascript"));
       link(\rel("stylesheet"), href(HANDSONTABLE_CSS));
       link(\rel("stylesheet"), href(HANDSONTABLE_THEME));
-
+      // The patch function is used to update the Handsontable instance with new data when a patch is received. It updates the data of the spreadsheet to include error highlighting and comments in the Handsontable instance.
       script(
         "function <name>_patch(patch) {
         '  console.log(\"patching\",patch);

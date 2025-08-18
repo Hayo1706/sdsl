@@ -1,7 +1,7 @@
 module sheetdsl::demo::Sudoku::Main
 
 import sheetdsl::ParserSDSL;
-import sheetdsl::ui::SheetApp;
+import sheetdsl::SheetApp;
 import sheetdsl::Syntax;
 import sheetdsl::util::SyntaxReader;
 import sheetdsl::util::Error;
@@ -36,7 +36,7 @@ Matrix sudokuDefaults = [
 App[Model] main() {
     start[MGL] parsed = parse(#start[MGL], |project://sdsl/src/sheetdsl/demo/Sudoku/sudoku.mgl|);
     return initSheetWebApp("Sudoku", parsed, 
-        sheet=spreadSheet(
+        spreadSheet(
             sheetData=spreadSheetData(sudokuDefaults),
             rowHeights=50, 
             colWidths=50, 

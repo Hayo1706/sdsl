@@ -45,6 +45,9 @@ button:disabled {
 .parseerror {
     background-color: var(--tint-severe) !important;
 }
+.parseerror .errorText.emptycell{
+    background: var(--color-parseerror) !important;
+}
 .parseerror.htCommentCell::after {
     border-top-color: var(--color-parseerror) !important;
 }
@@ -67,6 +70,9 @@ button:disabled {
 
 
 /* --- Error --- */
+.error .errorText.emptycell{
+    background: var(--color-error) !important;
+}
 .error.htCommentCell::after {
     border-top-color: var(--color-error) !important;
 }
@@ -76,6 +82,9 @@ button:disabled {
 }
 
 /* --- Warning --- */
+.warning .errorText.emptycell{
+    background: var(--color-warning) !important;
+}
 .warning.htCommentCell::after {
     border-top-color: var(--color-warning) !important;
 }

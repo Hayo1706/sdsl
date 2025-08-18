@@ -1,6 +1,6 @@
 module sheetdsl::demo::QL::Main
 
-import sheetdsl::demo::QL::App;
+import sheetdsl::demo::QL::MultipleFormsApp;
 import sheetdsl::demo::QL::Definitions;
 import sheetdsl::demo::QL::Check;
 
@@ -22,19 +22,13 @@ App[Model] main() {
 }
 
 set[Message] semanticChecks(list[node] nodes) {
-
-    if (size(nodes) == 0)
-        return {};
-
-
-    return check(node2adt(nodes[0], #Forms));
+    set[Message] messages = {};
+    for (node n <- nodes) {
+        messages += check(node2adt(n, #Forms));
+    }
+    return messages;
 }
 
 void run(list[node] nodes) {
-
-    if (size(nodes) == 0)
-        return;
-
-
-    showInteractiveContent(runQL(node2adt(nodes[0], #Forms)));
+    showInteractiveContent(runMultipleQL(node2adt(nodes, #Forms)));
 }

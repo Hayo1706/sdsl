@@ -23,9 +23,10 @@ public str highlightErrorSubstring(str code, int \start, int end) {
 }
 
 // Convert a row and column index to a loc object representing a cell location, this can be read out later from the error message.
-loc CoordsToLoc(int row, int col){
+// The begin and end parameters are used to specify the start and end of the error range, which can be useful for highlighting specific parts of the cell content.
+loc CoordsToLoc(int row, int col, int begin=0, int end=0) {
     str coords = "<row>" + "," + "<col>";
-    return |cell://<coords>|(0,0,<0,0>,<0,0>);
+    return |cell://<coords>|(0,0,<0,begin>,<0,end>);
 }
 // Convert a loc object to a string representation of the cell location.
 data CellLoc  = CellLoc(int row, int col);

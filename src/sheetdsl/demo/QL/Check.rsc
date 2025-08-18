@@ -188,8 +188,8 @@ set[Message] validateEqualityOperands(Expr expr, Expr left, Expr right, TEnv env
     | Types leftType := typeOf(left, env), (Types)`*unknown*` !:= typeOf(left, env), leftType !:= typeOf(right, env), (Types)`*unknown*` !:= typeOf(right, env) } + check(left, env) + check(right, env);
 }
 
-set[Message] check((Expr)`<Expr left> == <Expr right>`, TEnv env) = validateEqualityOperands((Expr)`<Expr left> == <Expr right>`, left, right, env);
-set[Message] check((Expr)`<Expr left> != <Expr right>`, TEnv env) = validateEqualityOperands((Expr)`<Expr left> != <Expr right>`, left, right, env);
+set[Message] check(exp: (Expr)`<Expr left> == <Expr right>`, TEnv env) = validateEqualityOperands(exp, left, right, env);
+set[Message] check(exp: (Expr)`<Expr left> != <Expr right>`, TEnv env) = validateEqualityOperands(exp, left, right, env);
 
 
 // Helper function for comparison operations

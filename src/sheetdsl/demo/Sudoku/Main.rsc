@@ -57,7 +57,7 @@ set[Message] parseSudoku(list[node] nodes) {
         for (int c <- [0..N]) {
             if (sudokuDefaults[r][c] == "" || grid[r][c] == nothing()) continue;
             if (sudokuDefaults[r][c] != "<grid[r][c].val>") 
-                msgs += error("Starting value <sudokuDefaults[r][c]> cannot be changed", CoordsToLoc(r, c));
+                msgs += error("Starting value <sudokuDefaults[r][c]> cannot be changed", CoordsToLoc(r, c,begin=0, end = size("<grid[r][c].val>")));
         }
     }
     if (size(msgs) > 0) return msgs;

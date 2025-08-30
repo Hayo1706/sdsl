@@ -56,7 +56,6 @@ str initcode(SpreadSheet sheet, str name) = "
     ' }
     '}
     'hot = new Handsontable(document.getElementById(\'<name>_spreadsheet\'), {
-    '  maxCols: <size(sheet.sheetData.columnHeaders)>,
     '  rowHeaders: <sheet.enableRowHeaders>,
     '  renderAllColumns : true,
     '  themeName: \'ht-theme-main\',
@@ -68,7 +67,6 @@ str initcode(SpreadSheet sheet, str name) = "
     '  colWidths:<sheet.colWidths>,
     '  rowHeights: <sheet.rowHeights>,
     '  comments: {displayOnHover: true, readOnly: true},
-    '  colHeaders: <sheet.enableColHeaders ? replaceAll("<sheet.sheetData.columnHeaders>","\"","\'"): false>,
     '  afterChange: function(changes, source) {
     '    const changedValues = [];
     '    changes?.forEach((element) =\> {
@@ -97,16 +95,26 @@ void spreadsheet(SpreadSheet sheet, str name, Attr event){
   withExtra(("sheet": sheet), (){
     // The Handsontable instance is initialized with the given sheet data, and the name is used to register the alien.
     div(class("salix-alien"), id(name), attr("onClick", initcode(sheet, name)), () {
+      println(sheet.sheetData);
       script(src(HANDSONTABLE_SRC), \type("text/javascript"));
       link(\rel("stylesheet"), href(HANDSONTABLE_CSS));
       link(\rel("stylesheet"), href(HANDSONTABLE_THEME));
-      // The patch function is used to update the Handsontable instance with new data when a patch is received. It updates the data of the spreadsheet to include error highlighting and comments in the Handsontable instance.
+      // The patch function is used to update the Handsontable instance with new data when a patch is received. 
+      // It updates the data of the spreadsheet to include error highlighting and comments in the Handsontable instance.
       script(
         "function <name>_patch(patch) {
-        '  console.log(\"patching\",patch);
+        '  console.log(patch);
         '  let x = patch.edits[0].extra;
+        '  if (patch.edits[0].extra.colIdOrder){
+        '    window.<name>_hotInstance.updateSettings({columns: x.colIdOrder.map(id =\> ({ data: String(id) }))});
+        '  }
         '  window.<name>_hotInstance.updateData(x.sheetData.data);
-        '  window.<name>_hotInstance.updateSettings({cell: x.comments});
+        '  window.<name>_hotInstance.updateSettings({
+        '     cell: x.comments,
+        '     colHeaders: x.sheetData.columnHeaders,
+        '     rowHeaders: x.sheetData.rowHeaders,
+        '  });
+
         '}
         '
         'function <name>_sendChangedData(change){

@@ -94,7 +94,7 @@ Model initModel(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc=not
 
   // Parse all the data in the initial sheet once, if it is not empty.
   for (int r <- index(sheet.sheetData.\data))
-    for (int c <- index(sheet.sheetData.\data[r]))
+    for (str c <- sheet.sheetData.\data[r])
       if (sheet.sheetData.\data[r][c] != "")
         m = parseChanges(r, c, sheet.sheetData.\data[r][c], m);
 
@@ -105,16 +105,16 @@ data Msg = sheetEdit(map[str,value] newValues) | parseSheet() | runSheet();
 
 
 // parse the user input according to the grammar of the column type
-Model parseChanges(int row, int col, value change, Model model){
-    model.parsedData.raw[row][col] = change;
+Model parseChanges(int row, str col, value change, Model model){
+    model.parsedData.raw[row][toInt(col)] = change;
     try{ 
-      model.parsedData.parsed[row][col] = change != "" ? parse(model.colTypes[col], change, CoordsToLoc(row, col)) :"";
+      model.parsedData.parsed[row][toInt(col)] = change != "" ? parse(model.colTypes[toInt(col)], change, CoordsToLoc(row, toInt(col))) :"";
       model.sheet.sheetData.\data[row][col] = change;
-      model.sheet.comments = removeComment(model.sheet.comments, row, col);
+      model.sheet.comments = removeComment(model.sheet.comments, row, toInt(col));
     }
     catch ParseError(loc location):{
       println("Parse error in cell (<row>,<col>): <location> with change: <change>");
-      model.sheet.comments = replaceComment(model.sheet.comments, row, col, "ParseError(<location>)", parseerror());
+      model.sheet.comments = replaceComment(model.sheet.comments, row, toInt(col), "ParseError(<location>)", parseerror());
       model.sheet.sheetData.\data[row][col] = highlightErrorSubstring(change, location.begin.column,location.end.column);
     }
     return model;
@@ -125,12 +125,12 @@ Model replaceErrors(set[Message] errs, Model model, bool structuralerr = false){
   list[CommentData] tempComments = []; 
   // Reset all highlights of previous errors
   for (CommentData c <- model.sheet.comments) {
-    model.sheet.sheetData.\data[c.row][c.col] = model.parsedData.raw[c.row][c.col];
+    model.sheet.sheetData.\data[c.row]["<c.col>"] = model.parsedData.raw[c.row][c.col];
   }
   for (Message err <- errs){
     CommentData ans = messageToCommentData(err, structuralerr ? structuralerror() : err is warning ? warning() : error());
     tempComments += ans;
-    model.sheet.sheetData.\data[ans.row][ans.col] = highlightErrorSubstring(model.parsedData.raw[ans.row][ans.col], err.at.begin.column,err.at.end.column);
+    model.sheet.sheetData.\data[ans.row]["<ans.col>"] = highlightErrorSubstring(model.parsedData.raw[ans.row][ans.col], err.at.begin.column,err.at.end.column);
   }
   model.sheet.comments = tempComments;
   return model;
@@ -152,11 +152,21 @@ Model parseFullSheet(Model model) {
 // If a cell is changed, parse the change based on the grammar, and depending on if autoParse is enabled, parse the full sheet.
 // If the parseSheet message is received, parse the full sheet and update the comments accordingly. Run the runFunc if it is set.
 Model update(Msg msg, Model model){
+  int testing = 0;
+  println("Received message: <msg>");
   switch (msg){
     case sheetEdit(map[str,value] diff):{
       visit (diff["payload"]) {
-        case "object"(col=int col, change=change, row=int row):{
+        case "object"(col=str col, change=change, row=int row):{
           model = parseChanges(row, col, change, model);
+          testing += 1;
+          //add new column to data
+          if (testing > 5){
+            model.sheet.sheetData.columnHeaders = insertAt(model.sheet.sheetData.columnHeaders, 2, "new");
+            for (int r <- index(model.sheet.sheetData.\data))
+              model.sheet.sheetData.\data[r]["6"] = "";
+            model.sheet.colIdOrder = [0,1,6,2,3,4,5];
+          }
         }
       }
       if (model.autoParse && (0 | it + 1 | commentData(_,_,_, parseerror()) <- model.sheet.comments) == 0) {

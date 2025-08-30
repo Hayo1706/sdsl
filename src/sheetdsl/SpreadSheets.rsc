@@ -1,6 +1,7 @@
 module sheetdsl::SpreadSheets
 import IO;
 import List;
+import Map;
 
 private list[str] alpha = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 private list[str] numeric = ["<i>" | int i <- [0..50]];
@@ -17,11 +18,11 @@ SpreadsheetData spreadSheetData(int rows, int cols)
 
 // Create spreadsheet with a given number of rows and columns and own labels, potentially with custom row headers.
 SpreadsheetData spreadSheetData(int rows, list[str] labels, list[str] rowHeaders = ["<i>" | int i <- [0..rows]]) 
-    = spreadSheetData(labels, rowHeaders, [["" | int _ <- [0..size(labels)]] | int i <-[0..size(rowHeaders)]]); 
+    = spreadSheetData(labels, rowHeaders, [("<i>":"" | int i <- [0..size(labels)]) | int _ <-[0..size(rowHeaders)]]); 
 
 
 // Create spreadsheet data with the given labels, row headers, and data matrix. The data can be extended with empty rows if the number of rows is greater than the data matrix.
-SpreadsheetData spreadSheetData(list[list[value]] \data, int rows=size(\data), list[str] labels=[intToColumnName(i) | int i <- [0..size(\data[0])]], list[str] rowHeaders = ["<i>" | int i <- [0..rows]]) {
+SpreadsheetData spreadSheetData(list[map[str,value]] \data, int rows=size(\data), list[str] labels=[intToColumnName(i) | int i <- [0..size(\data[0])]], list[str] rowHeaders = ["<i>" | int i <- [0..rows]]) {
     int defaultDataRows = size(\data);
     if (size(labels) != size(\data[0])) 
         throw ("The number of columns in the data does not match the number of labels");
@@ -29,7 +30,7 @@ SpreadsheetData spreadSheetData(list[list[value]] \data, int rows=size(\data), l
         throw ("The number of rows given is greater than the number of rowHeaders");
     // Extend the data with empty rows
     for (int _ <- [defaultDataRows..rows]) {
-        \data += [["" | int _ <- [0..size(labels)]]];
+        \data += [("<i>":"" | int i <- [0..size(labels)])];
     }
     return spreadSheetData(labels, rowHeaders, \data);
 }
@@ -42,7 +43,8 @@ data SpreadSheet
         int rowHeights = 30,
         int colWidths = 120,
         bool enableColHeaders = true,
-        bool enableRowHeaders = true
+        bool enableRowHeaders = true,
+        list[int] colIdOrder = [0..size(columnHeaders)]  // The order of the column ids, to allow reordering of columns in the UI.
     );
 
 // A spreadsheet data structure that contains the column headers, row headers, and the data matrix.
@@ -50,7 +52,7 @@ data SpreadsheetData
     = spreadSheetData(
         list[str] columnHeaders,
         list[str] rowHeaders,
-        list[list[value]] \data
+        list[map[str,value]] \data
     );
 
 

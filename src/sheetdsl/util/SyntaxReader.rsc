@@ -18,13 +18,15 @@ map[str, Block] getBlocks(start[MGL] s){
 }
 
 // Get the Elements from the MGL syntax tree, in order from left to right
-list[Element] getSheetColumns(start[MGL] s, Block block = s.top.topBlock, map[str, Block] blocks = getBlocks(s)){
+list[Element] getSheetColumns(start[MGL] s, Block block = s.top.topBlock, map[str, Block] blocks = getBlocks(s), int depth=0) {
+    if (depth > 50)
+        throw ("Too much recursion when reading the syntax tree. There might be a cycle in the sub-blocks.");
     list[Element] columns = [];
     for (Element e <- block.elems){
         if (e is col)
             columns += e;
         else if (e is sub){
-            columns += getSheetColumns(s, block=blocks["<e.subBlock.name>"], blocks=blocks);
+            columns += getSheetColumns(s, block=blocks["<e.subBlock.name>"], blocks=blocks, depth=depth+1);
         }
     }
     return columns;

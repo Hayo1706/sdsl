@@ -43,7 +43,7 @@ App[Model] main() {
             enableColHeaders=false, 
             enableRowHeaders=false
         ), 
-        parseFunc=just(parseSudoku), extraCss=["sheetdsl/demo/Sudoku/sudoku.css"]);
+        semanticFunc=just(parseSudoku), extraCss=["sheetdsl/demo/Sudoku/sudoku.css"]);
 }
 
 set[Message] parseSudoku(list[node] nodes) {

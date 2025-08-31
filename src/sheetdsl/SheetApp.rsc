@@ -35,7 +35,7 @@ import lang::rascal::grammar::definition::Symbols;
 //Store both the raw values which are entered by the user, and the parsed values which are the result of parsing the raw values with the grammar.
 alias ParsedData = tuple[Matrix raw, Matrix parsed];
 // Optionally provide a function to parse the data, or run the sheet.
-alias ParseFunc = Maybe[set[Message](list[node])];
+alias SemanticFunc = Maybe[set[Message](list[node])];
 alias RunFunc   = Maybe[void(list[node])];
 
 
@@ -44,24 +44,24 @@ alias Model = tuple[str name,
                     SpreadSheet sheet, 
                     map[int, type[&T<:Tree]] colTypes, 
                     ParsedData parsedData,
-                    ParseFunc parseFunc,
+                    SemanticFunc semanticFunc,
                     RunFunc runFunc,
-                    bool autoParse
+                    bool autoSemantic
               ];
 
 // Helper function to make an initial empty spreadSheet, with the given number of rows and the labels from the grammar.
 SpreadSheet getBasicSpreadSheet(start[MGL] s, int rows) = spreadSheet(sheetData=spreadSheetData(rows, getSheetLabels(s)));
 
 
-App[Model] initSheetWebApp(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc=nothing(), RunFunc runFunc=nothing(), bool autoParse = true, list[str] extraCss = []) 
-    = webApp(initSheetApp(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse, extraCss=extraCss),|project://sdsl/src|);
+App[Model] initSheetWebApp(str id, start[MGL] s, SpreadSheet sheet, SemanticFunc semanticFunc=nothing(), RunFunc runFunc=nothing(), bool autoSemantic = true, list[str] extraCss = []) 
+    = webApp(initSheetApp(id, s, sheet, semanticFunc=semanticFunc, runFunc=runFunc, autoSemantic=autoSemantic, extraCss=extraCss),|project://sdsl/src|);
 
 
-SalixApp[Model] initSheetApp(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(), bool autoParse = true,list[str] extraCss = [])
-    = makeApp(id,Model() { return initModel(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse);}, withIndex(id, id, view, css=["sheetdsl/ui/min.css"] + extraCss), update);
+SalixApp[Model] initSheetApp(str id, start[MGL] s, SpreadSheet sheet, SemanticFunc semanticFunc = nothing(), RunFunc runFunc = nothing(), bool autoSemantic = true,list[str] extraCss = [])
+    = makeApp(id,Model() { return initModel(id, s, sheet, semanticFunc=semanticFunc, runFunc=runFunc, autoSemantic=autoSemantic);}, withIndex(id, id, view, css=["sheetdsl/ui/min.css"] + extraCss), update);
 
 
-Model initModel(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc=nothing(), RunFunc runFunc = nothing(),bool autoParse = true) {
+Model initModel(str id, start[MGL] s, SpreadSheet sheet, SemanticFunc semanticFunc=nothing(), RunFunc runFunc = nothing(),bool autoSemantic = true) {
   // Map that will hold the grammars of the columns, indexed by their column index.
   map[int, type[&T<:Tree]] colTypes = ();
 
@@ -90,7 +90,7 @@ Model initModel(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc=not
 
 
   // init model
-  Model m = <id,s,sheet,colTypes, <emptyRaw, emptyParsed>, parseFunc, runFunc, autoParse>;
+  Model m = <id,s,sheet,colTypes, <emptyRaw, emptyParsed>, semanticFunc, runFunc, autoSemantic>;
 
   // Parse all the data in the initial sheet once, if it is not empty.
   for (int r <- index(sheet.sheetData.\data))
@@ -137,19 +137,19 @@ Model replaceErrors(set[Message] errs, Model model, bool structuralerr = false){
 }
 
 // Parse the full sheet, checking for missing cells and semantic errors
-Model parseFullSheet(Model model) {
+Model parseFullSheet(Model model, bool runSemantic = true) {
     set[Message] errs = checkRequiredBlocks(model.parsedData.raw, model.s);
     bool missingCells = size(errs) > 0;
 
-    if (!missingCells && model.parseFunc != nothing())
-      errs = model.parseFunc.val(parseMatrix(model.parsedData.parsed, model.s));
+    if (!missingCells && model.semanticFunc != nothing() && runSemantic)
+      errs = model.semanticFunc.val(parseMatrix(model.parsedData.parsed, model.s));
 
     return replaceErrors(errs, model, structuralerr=missingCells);
 }
 
 
 // Update the model based on the message received. 
-// If a cell is changed, parse the change based on the grammar, and depending on if autoParse is enabled, parse the full sheet.
+// If a cell is changed, parse the change based on the grammar, and depending on if autoSemantic is enabled, parse the full sheet.
 // If the parseSheet message is received, parse the full sheet and update the comments accordingly. Run the runFunc if it is set.
 Model update(Msg msg, Model model){
   switch (msg){
@@ -159,8 +159,8 @@ Model update(Msg msg, Model model){
           model = parseChanges(row, col, change, model);
         }
       }
-      if (model.autoParse && (0 | it + 1 | commentData(_,_,_, parseerror()) <- model.sheet.comments) == 0) {
-        model = parseFullSheet(model);
+      if ((0 | it + 1 | commentData(_,_,_, parseerror()) <- model.sheet.comments) == 0) {
+        model = parseFullSheet(model, runSemantic=model.autoSemantic);
       }
     }
     case parseSheet():{

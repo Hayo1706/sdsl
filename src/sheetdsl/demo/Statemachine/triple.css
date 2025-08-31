@@ -16,7 +16,7 @@ body{
   --color-parseerror: #ff0000;
   --color-structuralerror: #ff5810; 
   --color-error: #ff4800; 
-  --color-warning: #e6d03a; 
+  --color-warning: #ffc03a; 
 
   /* Background tint for severe cases */
   --tint-severe: rgba(255, 0, 0, 0.05); /* light red tint */}
@@ -48,6 +48,7 @@ body{
   font-weight: 650 !important;
 }
 
+/* Semantic errors */
 
 /* --- Error --- */
 .error .errorText.emptycell{
@@ -55,6 +56,9 @@ body{
 }
 .error.htCommentCell::after {
   border-top-color: var(--color-error) !important;
+}
+.error.htCommentCell {
+  border-bottom: 2px solid var(--color-error) !important;
 }
 .error .errorText {
   color: var(--color-error) !important;
@@ -67,6 +71,9 @@ body{
 }
 .warning.htCommentCell::after {
   border-top-color: var(--color-warning) !important;
+}
+.warning.htCommentCell {
+  border-bottom: 2px solid var(--color-warning) !important;
 }
 .warning .errorText {
   color: var(--color-warning) !important;

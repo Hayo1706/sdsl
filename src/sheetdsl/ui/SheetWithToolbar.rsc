@@ -17,12 +17,12 @@ import Message;
 
 alias ToolBarModel = tuple[Model sheet,bool hasParsed, bool canRunWithWarnings];
 
-App[ToolBarModel] initSheetToolBar(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoParse=false, list[str] css = [])
-    = webApp(makeApp(id,ToolBarModel() { return initTBModel(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings, autoParse=autoParse);}, 
+App[ToolBarModel] initSheetToolBar(str id, start[MGL] s, SpreadSheet sheet, SemanticFunc semanticFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoSemantic=false, list[str] css = [])
+    = webApp(makeApp(id,ToolBarModel() { return initTBModel(id, s, sheet, semanticFunc=semanticFunc, runFunc=runFunc, canRunWithWarnings=canRunWithWarnings, autoSemantic=autoSemantic);}, 
       withIndex(id, id, viewWithTB, css=["sheetdsl/ui/min.css"] + css), updateTB),|project://sdsl/src|);
 
-ToolBarModel initTBModel(str id, start[MGL] s, SpreadSheet sheet, ParseFunc parseFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoParse = false) 
-    = <initModel(id, s, sheet, parseFunc=parseFunc, runFunc=runFunc, autoParse=autoParse), false, canRunWithWarnings>;
+ToolBarModel initTBModel(str id, start[MGL] s, SpreadSheet sheet, SemanticFunc semanticFunc = nothing(), RunFunc runFunc = nothing(), bool canRunWithWarnings = true, bool autoSemantic = false) 
+    = <initModel(id, s, sheet, semanticFunc=semanticFunc, runFunc=runFunc, autoSemantic=autoSemantic), false, canRunWithWarnings>;
 
 // The toolbar model is just a wrapper around the sheet model, 
 // with an additional flag to indicate whether the sheet has been parsed or not to not accidentally do it multiple times, and to make sure it is parsed before running.
@@ -52,9 +52,11 @@ ToolBarModel updateTB(Msg msg, ToolBarModel model){
 // defers to the view function of the sheet model to display it.
 void viewWithTB(ToolBarModel m) {
   int parseErrors = (0 | it + 1 | commentData(_,_,_, parseerror()) <- m.sheet.sheet.comments);
+  int structuralErrors = (0 | it + 1 | commentData(_,_,_, structuralerror()) <- m.sheet.sheet.comments);
+
   int errors = (0 | it + 1 | commentData(_,_,_, error()) <- m.sheet.sheet.comments);
 
-  bool canParse = !m.hasParsed && parseErrors == 0;
+  bool canParse = !m.hasParsed && parseErrors == 0 && structuralErrors == 0;
   bool canRun = m.hasParsed && errors == 0;
 
   if (!m.canRunWithWarnings && (0 | it + 1 | commentData(_,_,_, warning()) <- m.sheet.sheet.comments) > 0)
